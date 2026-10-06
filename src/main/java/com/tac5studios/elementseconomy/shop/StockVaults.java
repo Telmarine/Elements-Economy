@@ -49,6 +49,18 @@ public final class StockVaults {
             JsonObject o = Storage.get().get(Collections.STOCK_LINKS, k, JsonObject.class);
             if (o != null && o.has("owner")) LINKS.put(k, UUID.fromString(o.get("owner").getAsString()));
         }
+        // Same as shops: anything that cached a vault's plain handler before the links loaded asks again.
+        for (String k : LINKS.keySet()) {
+            int bar = k.lastIndexOf('|');
+            ResourceLocation dim = bar > 0 ? ResourceLocation.tryParse(k.substring(0, bar)) : null;
+            if (dim == null) continue;
+            ServerLevel level = e.getServer().getLevel(ResourceKey.create(Registries.DIMENSION, dim));
+            try {
+                if (level != null) level.invalidateCapabilities(BlockPos.of(Long.parseLong(k.substring(bar + 1))));
+            } catch (NumberFormatException ignored) {
+                // bad key, skip
+            }
+        }
     }
 
     public static boolean isLinked(Level level, BlockPos controller) {

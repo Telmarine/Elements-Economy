@@ -61,9 +61,16 @@ public final class AhCollectMenu extends PagedMenu<AhCollectMenu.Entry> {
             if (cur.isEmpty()) return;
             set(slot, Button.of(Icons.named(cur.get().icon().getItem(), Component.literal(e.format(cur.get().of(en.amount()))),
                     List.of(Msg.menu("ah_menu.click_take"))), (p, c) -> {
-                Result r = e.deposit(p.getUUID(), cur.get().of(en.amount()), Cause.command("/ah collect", p.getUUID()));
+                // Pay what is in the box now, not what it held when the menu was drawn.
+                BigInteger now = CollectionBox.money(p.getUUID()).get(en.currency());
+                BigInteger pay = now == null ? BigInteger.ZERO : Economy.payable(cur.get(), now);
+                if (pay.signum() <= 0) {
+                    refresh();
+                    return;
+                }
+                Result r = e.deposit(p.getUUID(), cur.get().of(pay), Cause.command("/ah collect", p.getUUID()));
                 if (r.success()) {
-                    CollectionBox.removeMoney(p.getUUID(), en.currency());
+                    CollectionBox.takeMoney(p.getUUID(), en.currency(), pay);
                     Msg.send(p, "ah.collected", "count", 1);
                 } else {
                     Msg.send(p, "general.currency_unavailable");
@@ -74,7 +81,13 @@ public final class AhCollectMenu extends PagedMenu<AhCollectMenu.Entry> {
         }
         ItemStack shown = Icons.addLore(en.item().copy(), List.of(Msg.menu("ah_menu.click_take")));
         set(slot, Button.of(shown, (p, c) -> {
-            ItemStack st = en.item();
+            // Only hand it over if the box still holds this exact stack at this spot.
+            List<ItemStack> now = CollectionBox.items(p.getUUID(), Auctions.registries());
+            if (en.index() >= now.size() || !ItemStack.matches(now.get(en.index()), en.item())) {
+                refresh();
+                return;
+            }
+            ItemStack st = now.get(en.index());
             if (ShopStock.room(ShopTrade.inventory(p), st, st.getCount()) < st.getCount()) {
                 Msg.send(p, "shop.no_room");
                 return;

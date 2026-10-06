@@ -211,7 +211,10 @@ public final class OwnerMenu extends PagedMenu<ShopRow> {
         }
     }
 
-    /** Pay the till into the owner's balance (each currency). */
+    /**
+     * Pay the till into the shop owner's balance (each currency). Staff managing someone else's shop
+     * pay it to the owner, never to themselves.
+     */
     private void collect(ServerPlayer p) {
         Economy e = Economy.get();
         if (e == null) return;
@@ -220,12 +223,17 @@ public final class OwnerMenu extends PagedMenu<ShopRow> {
             ResourceLocation id = ResourceLocation.tryParse(t.getKey());
             Optional<Currency> c = id == null ? Optional.empty() : e.currency(id);
             if (c.isEmpty()) continue;
-            Money m = c.get().of(t.getValue());
-            Result r = e.deposit(p.getUUID(), m, Cause.shop(shop.id, p.getUUID()).withReason("collect"));
+            BigInteger amount = Economy.payable(c.get(), t.getValue());
+            if (amount.signum() <= 0) continue;
+            Money m = c.get().of(amount);
+            Result r = e.deposit(shop.owner, m, Cause.shop(shop.id, p.getUUID()).withReason("collect"));
             if (r.success()) {
-                shop.addTill(t.getKey(), t.getValue().negate());
+                shop.addTill(t.getKey(), amount.negate());
                 Msg.send(p, "shop.collected", "amount", e.format(m), "shop", shop.name);
                 any = true;
+            } else if (r.reason() == Result.Reason.OFFLINE_NOT_SUPPORTED) {
+                Msg.send(p, "shop.owner_offline", "shop", shop.name);
+                return;
             }
         }
         if (any) Shops.save(shop);

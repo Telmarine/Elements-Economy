@@ -35,7 +35,9 @@ public final class AhBidMenu extends Menu {
     private BigInteger step() {
         BigInteger min = Auctions.minBid(listing);
         BigInteger base = listing.bids > 0 ? listing.topBid : listing.price;
-        return min.subtract(base).max(BigInteger.ONE);
+        BigInteger step = min.subtract(base).max(BigInteger.ONE);
+        // Coin currencies: steps of whole coins, so every bid the buttons make can be paid.
+        return Auctions.currency(listing).map(c -> Economy.roundUp(c, step)).orElse(step);
     }
 
     @Override

@@ -83,7 +83,24 @@ public final class ItemCurrency implements Currency {
 
     @Override
     public Optional<BigInteger> parse(String text) {
-        return Amounts.parse(text, 0);
+        // Only amounts that can be paid in whole coins (e.g. not 30 when the smallest coin is worth 50).
+        return Amounts.parse(text, 0).filter(v -> payable(v).equals(v));
+    }
+
+    /** The smallest whole-coin amount that is at least {@code amount} (for prices and bids). */
+    public BigInteger roundUp(BigInteger amount) {
+        BigInteger p = payable(amount);
+        if (p.equals(amount)) return amount;
+        List<Map.Entry<Item, Long>> d = CurrencyDetector.denominations(namespace);
+        long smallest = d.isEmpty() ? 1 : Math.max(1, d.get(d.size() - 1).getValue());
+        BigInteger up = p.add(BigInteger.valueOf(smallest));
+        return payable(up).equals(up) ? up : amount;
+    }
+
+    /** The part of an amount that whole coins can pay. The rest is too small for any coin. */
+    public BigInteger payable(BigInteger amount) {
+        if (amount.signum() <= 0) return BigInteger.ZERO;
+        return amount.subtract(BigInteger.valueOf(CurrencyDisplay.remainder(namespace, Amounts.toLong(amount))));
     }
 
     @Override

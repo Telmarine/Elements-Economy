@@ -130,12 +130,13 @@ Nav row: close · category · prev · page · next · sort (newest, ending soon,
 
 **Bid screen** (3 rows): item, current bid, lowest next bid, your bid; +1 step / +5 steps / type amount (anvil) / reset; cancel · confirm. Bid money is held until outbid (refunded) or won.
 
-**Sell screen** (`/ah sell`, 3 rows): item from hand, price (anvil), type buy now ↔ auction, duration (1h / 6h / 12h / 24h), fee slot, cancel (item returned) · confirm.
+**Sell screen** (`/ah sell`, 3 rows): item from hand, price (anvil), type buy now ↔ auction, duration (1h / 6h / 12h / 24h), cancel (item returned) · confirm.
 
-**Listing fee and sales tax are optional — server owner's choice.**
-- `auction_house.listing_fee` (default **off**) and `auction_house.sales_tax` (default **off**) in features.toml.
-- Amounts in `auction_house.toml`: fee as a flat amount or a percent of the price, tax as a percent of the sale. Bid step and durations live there too.
-- With the fee off, the fee slot on the sell screen is a plain filler and no fee line appears anywhere.
+**Listing is always free.** There is no listing fee.
+
+**Sales tax is optional — server owner's choice.**
+- `auction_house.sales_tax` (default **off**) in features.toml.
+- The percent is in `auction_house.toml`, taken from each sale. Bid step and durations live there too.
 
 **My listings:** active / sold / expired rows with cancel. **Collection box:** money from sales and won/expired/cancelled items waiting to be picked up.
 

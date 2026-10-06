@@ -228,7 +228,7 @@ public final class MoneyCommands {
 
         String input = StringArgumentType.getString(c, "amount");
         Money amount = e.parse(cur, input).orElse(null);
-        BigInteger min = cur.parse(EconomyConfig.PAY_MIN.get()).orElse(BigInteger.ONE);
+        BigInteger min = Economy.configAmount(cur, EconomyConfig.PAY_MIN.get()).orElse(BigInteger.ONE);
         if (amount == null || amount.amount().compareTo(min) < 0) {
             Msg.fail(s, "general.bad_amount", "input", input);
             return 0;

@@ -214,12 +214,13 @@ public final class TradeMenu extends PagedMenu<ShopRow> {
         }
         t8.add(Msg.menu("menu.click_confirm"));
         if (tips) Icons.addLore(act, t8);
+        ShopTrade.Quote seen = ShopTrade.Quote.of(r); // the price shown above, checked again on Yes
         set(row, 7, Button.of(act, (p, c) -> {
             if (!possible) return;
             ItemStack preview = r.item.copyWithCount(Math.max(1, Math.min(64, items)));
             ConfirmMenu.ask(p, preview, t8.subList(0, t8.size() - 1), who -> {
-                if (buy()) ShopTrade.buy(who, shop, r, bundles);
-                else ShopTrade.sell(who, shop, r, bundles);
+                if (buy()) ShopTrade.buy(who, shop, r, bundles, seen);
+                else ShopTrade.sell(who, shop, r, bundles, seen);
                 open(who);
             }, this::open);
         }));

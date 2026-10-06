@@ -173,7 +173,7 @@ public final class ShopCommands {
         }
         if (Features.on(Features.PS_CREATE_FEE) && !Perm.has(p, Perm.SHOP_FREE)) {
             Currency cur = e.primaryCurrency();
-            BigInteger fee = cur.parse(ShopConfig.CREATE_FEE.get()).orElse(BigInteger.ZERO);
+            BigInteger fee = Economy.configAmount(cur, ShopConfig.CREATE_FEE.get()).orElse(BigInteger.ZERO);
             if (fee.signum() > 0) {
                 Money m = cur.of(fee);
                 Result r = e.withdraw(p.getUUID(), m, Cause.command("/shop create", p.getUUID()).withReason("shop fee"));
@@ -235,11 +235,19 @@ public final class ShopCommands {
                 ResourceLocation id = ResourceLocation.tryParse(t.getKey());
                 Optional<Currency> cur = id == null ? Optional.empty() : e.currency(id);
                 if (cur.isEmpty()) continue;
-                Result r = e.deposit(s.owner, cur.get().of(t.getValue()), Cause.shop(s.id, actor.getUUID()).withReason("shop removed"));
-                if (!r.success()) {
-                    Shops.save(s);
-                    Msg.send(actor, "shop.till_not_empty");
-                    return false;
+                BigInteger pay = Economy.payable(cur.get(), t.getValue());
+                if (pay.signum() > 0) {
+                    Result r = e.deposit(s.owner, cur.get().of(pay), Cause.shop(s.id, actor.getUUID()).withReason("shop removed"));
+                    if (!r.success()) {
+                        Shops.save(s);
+                        Msg.send(actor, "shop.till_not_empty");
+                        return false;
+                    }
+                }
+                BigInteger dust = t.getValue().subtract(pay);
+                if (dust.signum() > 0) {
+                    // Smaller than any coin (left by a currency switch): it can't be paid, so it goes with the shop.
+                    com.tac5studios.elementseconomy.storage.TransactionLog.add("SHOP_DUST", s.id + " " + dust + " (" + t.getKey() + ")");
                 }
                 s.addTill(t.getKey(), t.getValue().negate());
             }

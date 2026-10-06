@@ -79,7 +79,7 @@ public final class AdminCommands {
 
     private static int reload(CommandContext<CommandSourceStack> c) {
         Msg.load();
-        CurrencyDetector.detect();
+        CurrencyDetector.refresh();
         Economy e = Economy.get();
         if (e != null) e.reload();
         for (Shop s : Shops.all()) ShopDisplays.touch(s.id); // signs pick up new messages and prices

@@ -4,7 +4,6 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-import java.util.Arrays;
 import java.util.List;
 
 /** config/elements_economy/auction_house.toml */
@@ -12,9 +11,6 @@ public final class AuctionConfig {
 
     public static final ModConfigSpec SPEC;
 
-    public static final ModConfigSpec.ConfigValue<String> FEE_MODE;
-    public static final ModConfigSpec.ConfigValue<String> FEE_AMOUNT;
-    public static final ModConfigSpec.DoubleValue FEE_PERCENT;
     public static final ModConfigSpec.DoubleValue TAX_PERCENT;
 
     public static final ModConfigSpec.DoubleValue BID_STEP_PERCENT;
@@ -28,13 +24,6 @@ public final class AuctionConfig {
 
     static {
         ModConfigSpec.Builder b = new ModConfigSpec.Builder();
-
-        b.comment("Listing fee. Needs auction_house.listing_fee on in features.toml.").push("fee");
-        FEE_MODE = b.comment("flat = a set amount per listing. percent = a share of the listing's price.")
-                .defineInList("mode", "flat", Arrays.asList("flat", "percent"));
-        FEE_AMOUNT = b.comment("Flat fee, in the primary currency.").define("amount", "10");
-        FEE_PERCENT = b.comment("Percent fee, e.g. 2.5 for 2.5%.").defineInRange("percent", 2.5, 0.0, 100.0);
-        b.pop();
 
         b.comment("Sales tax. Needs auction_house.sales_tax on in features.toml.").push("tax");
         TAX_PERCENT = b.comment("Percent taken from each sale, e.g. 5 for 5%.").defineInRange("percent", 5.0, 0.0, 100.0);

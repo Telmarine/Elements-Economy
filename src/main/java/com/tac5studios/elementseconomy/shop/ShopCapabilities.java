@@ -32,7 +32,7 @@ import java.util.List;
  * For every other block it answers nothing and the block's own handler is used as normal.
  * Vanilla hoppers ask this capability first too (NeoForge's hopper hook).
  */
-@EventBusSubscriber(modid = ElementsEconomy.MOD_ID, value = Dist.DEDICATED_SERVER, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = ElementsEconomy.MOD_ID, value = Dist.DEDICATED_SERVER)
 public final class ShopCapabilities {
 
     private ShopCapabilities() {}
@@ -50,7 +50,9 @@ public final class ShopCapabilities {
     @Nullable
     private static IItemHandler provide(Level level, BlockPos pos, BlockState state, @Nullable BlockEntity be, @Nullable Direction side) {
         if (ShopContainers.RAW.get() || level.isClientSide()) return null;
-        boolean shop = Features.on(Features.PLAYER_SHOPS, Features.PS_BLOCK_EXTRACTION) && Shops.isShop(level, pos);
+        // Not tied to the player_shops switch: shops that already exist keep their lock even when the
+        // feature is off (or the overlap guard turned it off), so nobody can drain their stock.
+        boolean shop = Features.on(Features.PS_BLOCK_EXTRACTION) && Shops.isShop(level, pos);
         boolean vault = !shop && state.is(ShopContainers.STOCK_VAULTS) && StockVaults.isLinked(level, controller(be, pos));
         if (!shop && !vault) return null;
         IItemHandler inner = ShopContainers.raw(level, pos);

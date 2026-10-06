@@ -44,6 +44,9 @@ public class ElementsEconomy {
         AuctionConfig.register(container);
         // Impactor and OctoEconomy ask for a money provider before the server starts.
         com.tac5studios.elementseconomy.bridge.Bridges.init();
+        // Create contraptions must not pick up shops (no-op without Create).
+        modEventBus.addListener(net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent.class,
+                e -> e.enqueueWork(com.tac5studios.elementseconomy.integration.CreateGuard::register));
         LOGGER.info("[Economy] Elements: Economy loading.");
     }
 }

@@ -42,8 +42,23 @@ public final class ShopTrade {
         return new PlayerMainInvWrapper(p.getInventory());
     }
 
+    /** The terms a customer saw on the confirm screen. The trade only goes through if they still hold. */
+    public record Quote(String currency, BigInteger price, int per) {
+        public static Quote of(ShopRow r) {
+            return new Quote(r.currency == null ? "" : r.currency, r.price, r.per);
+        }
+
+        boolean matches(ShopRow r) {
+            return currency.equals(r.currency == null ? "" : r.currency) && price.equals(r.price) && per == r.per;
+        }
+    }
+
     /** Player buys {@code bundles} bundles from a BUY shop. */
-    public static boolean buy(ServerPlayer p, Shop s, ShopRow r, int bundles) {
+    public static boolean buy(ServerPlayer p, Shop s, ShopRow r, int bundles, Quote seen) {
+        if (!seen.matches(r)) {
+            Msg.send(p, "shop.price_changed");
+            return false;
+        }
         if (!s.open) {
             Msg.send(p, "shop.closed", "shop", s.name);
             return false;
@@ -116,7 +131,11 @@ public final class ShopTrade {
     }
 
     /** Player sells {@code bundles} bundles to a SELL shop. */
-    public static boolean sell(ServerPlayer p, Shop s, ShopRow r, int bundles) {
+    public static boolean sell(ServerPlayer p, Shop s, ShopRow r, int bundles, Quote seen) {
+        if (!seen.matches(r)) {
+            Msg.send(p, "shop.price_changed");
+            return false;
+        }
         if (!s.open) {
             Msg.send(p, "shop.closed", "shop", s.name);
             return false;

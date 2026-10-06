@@ -201,6 +201,10 @@ public final class AhBrowseMenu extends PagedMenu<Listing> {
                     Msg.send(p, "ah.own");
                     return;
                 }
+                if (!Perm.has(p, Perm.AH_BID)) {
+                    Msg.send(p, "general.no_permission");
+                    return;
+                }
                 new AhBidMenu(l, this).open(p);
             }));
         }

@@ -93,7 +93,8 @@ public final class Auctions {
         if (++ticks % 20 != 0 || !Features.on(Features.AUCTION) || !Storage.running()) return;
         long now = System.currentTimeMillis();
         for (Listing l : new ArrayList<>(LISTINGS.values())) {
-            if (l.active() && now >= l.ends) finish(l);
+            // A listing whose item can't be read (its mod was removed) waits until the mod is back.
+            if (l.active() && l.item != null && now >= l.ends) finish(l);
         }
         if (ticks >= 20 * 60) {
             ticks = 0;
@@ -172,10 +173,11 @@ public final class Auctions {
     public static BigInteger minBid(Listing l) {
         if (l.bids == 0) return l.price;
         Optional<Currency> cur = currency(l);
-        BigInteger min = cur.flatMap(c -> c.parse(AuctionConfig.BID_STEP_MIN.get())).orElse(BigInteger.ONE);
+        BigInteger min = cur.flatMap(c -> Economy.configAmount(c, AuctionConfig.BID_STEP_MIN.get())).orElse(BigInteger.ONE);
         BigInteger pct = new BigDecimal(l.topBid).multiply(BigDecimal.valueOf(AuctionConfig.BID_STEP_PERCENT.get() / 100.0))
                 .setScale(0, RoundingMode.CEILING).toBigInteger();
-        return l.topBid.add(min.max(pct).max(BigInteger.ONE));
+        BigInteger next = l.topBid.add(min.max(pct).max(BigInteger.ONE));
+        return cur.map(c -> Economy.roundUp(c, next)).orElse(next); // coin currencies: whole coins only
     }
 
     /** Proceeds after sales tax (when on, and the seller doesn't have ah.notax while online). */
@@ -187,12 +189,16 @@ public final class Auctions {
         }
         BigInteger tax = new BigDecimal(gross).multiply(BigDecimal.valueOf(AuctionConfig.TAX_PERCENT.get() / 100.0))
                 .setScale(0, RoundingMode.FLOOR).toBigInteger();
+        // Coin currencies: round the seller's share down to whole coins so none of it is stranded.
+        Optional<Currency> cur = currency(l);
+        if (cur.isPresent()) tax = gross.subtract(Economy.payable(cur.get(), gross.subtract(tax)));
         if (tax.signum() > 0) TransactionLog.add("AH_TAX", l.sellerName + " " + tax + " (" + l.currency + ") listing " + l.id);
         return gross.subtract(tax);
     }
 
     /** Time is up: auction goes to the top bidder; anything unsold goes back to the seller. */
     static void finish(Listing l) {
+        if (l.item == null) return; // never hand out or drop an item that can't be read
         l.closed = System.currentTimeMillis();
         String itemName = l.item == null ? "?" : l.item.getHoverName().getString();
         if (l.auction && l.topBidder != null) {

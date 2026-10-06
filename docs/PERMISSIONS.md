@@ -48,7 +48,6 @@
 | economy.ah.cancel | Everyone | auction_house.enabled, auction_house.cancel |  |
 | economy.ah.collect | Everyone | auction_house.enabled, auction_house.collect |  |
 | economy.ah.alerts | Everyone | auction_house.enabled, auction_house.sale_alerts |  |
-| economy.ah.nofee | OP 2+ | auction_house.enabled, auction_house.listing_fee | No listing fee. |
 | economy.ah.notax | OP 2+ | auction_house.enabled, auction_house.sales_tax | No sales tax. |
 | economy.ah.nolimit | OP 2+ | auction_house.enabled, auction_house.rank_limits | No limit on how many listings you have. |
 | economy.ah.remove | OP 2+ | auction_house.enabled, auction_house.admin_remove | Remove anyone's listing. |

@@ -104,6 +104,17 @@ public final class CollectionBox {
         save(player, o);
     }
 
+    /** Takes {@code amount} of one currency out of the box (after it was paid out). Anything left stays. */
+    public static void takeMoney(UUID player, String currency, BigInteger amount) {
+        JsonObject o = box(player);
+        JsonObject m = o.getAsJsonObject("money");
+        BigInteger now = m.has(currency) ? new BigInteger(m.get(currency).getAsString()) : BigInteger.ZERO;
+        BigInteger left = now.subtract(amount);
+        if (left.signum() > 0) m.addProperty(currency, left.toString());
+        else m.remove(currency);
+        save(player, o);
+    }
+
     public static void removeMoney(UUID player, String currency) {
         JsonObject o = box(player);
         o.getAsJsonObject("money").remove(currency);

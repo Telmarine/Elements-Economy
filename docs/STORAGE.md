@@ -5,7 +5,7 @@ Same storage system as Elements: Nexus, with its own config, folder and table. T
 ## storage.toml (config/elements_economy/storage.toml)
 | Setting | Default | What it does |
 |---|---|---|
-| backend | json | json, yaml, sqlite or mysql. Falls back to json if it can't start. (restart) |
+| backend | json | json, yaml, sqlite or mysql. If it can't start, the server stops with an error instead of running on empty data. (restart) |
 | folder | elements_economy/store | Where json/yaml files and economy.db live. |
 | save_interval_seconds | 60 | Seconds between saves of changed data. |
 | quick_save_money | true | Money changes save within 2 seconds instead of waiting for the timer. |
@@ -20,7 +20,7 @@ Same storage system as Elements: Nexus, with its own config, folder and table. T
 - Each collection is a map of key → JSON value. json/yaml: one file per collection. sqlite/mysql: one table `economy_data (collection, data_key, data_value)`.
 - Files save through a temp file and a move, so a crash never leaves half a file.
 - A broken file is copied to `<name>.json.broken-<time>` and that collection starts empty. A collection that fails to load is never saved that run, so stored data isn't overwritten.
-- `/economy storage convert <type>` copies everything to another backend while the server runs. Change `backend` and restart to use it.
+- `/economy storage convert <type>` copies everything to another backend while the server runs. Change `backend` and restart to use it. Anything that changes before the restart is copied again when the server stops.
 - Drivers (sqlite-jdbc, mariadb client, snakeyaml) are bundled with jarJar, same version ranges as Nexus, so only one copy loads when both mods are installed.
 
 ## Money safety
@@ -36,7 +36,7 @@ Same storage system as Elements: Nexus, with its own config, folder and table. T
 - `logs/elements_economy/transactions-YYYY-MM-DD.log`, one plain line per money movement. Switched by `economy.transaction_log`.
 - Kept outside the store: append-only, for people to read, and readable even if the store breaks.
 - Example: `14:02:11 PAY Steve -> Alex 250 Coins (elements_economy:digital) "for the iron"`
-- Tags: PAY, GIVE, TAKE, SET, RESET, SHOP_BUY, SHOP_SELL, AH_SALE, AH_BID, AH_FEE, AH_TAX, EXCHANGE, SWITCH, MIGRATE.
+- Tags: PAY, GIVE, TAKE, SET, RESET, SHOP_BUY, SHOP_SELL, AH_SALE, AH_BID, AH_TAX, EXCHANGE, SWITCH, MIGRATE.
 
 ## Items
 - Items are saved with the full item codec (all components: enchantments, names, box contents).

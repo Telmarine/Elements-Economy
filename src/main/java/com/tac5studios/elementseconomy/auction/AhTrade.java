@@ -23,9 +23,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.NeoForge;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.math.RoundingMode;
 import java.util.Map;
 import java.util.Optional;
 
@@ -74,16 +72,6 @@ public final class AhTrade {
         return AuctionConfig.DEFAULT_LIMIT.get();
     }
 
-    /** Listing fee for a listing worth {@code value} (0 when off or exempt). */
-    public static BigInteger fee(ServerPlayer p, Currency cur, BigInteger value) {
-        if (!Features.on(Features.AUCTION, Features.AH_LISTING_FEE) || Perm.has(p, Perm.AH_NO_FEE)) return BigInteger.ZERO;
-        if ("percent".equals(AuctionConfig.FEE_MODE.get())) {
-            return new BigDecimal(value).multiply(BigDecimal.valueOf(AuctionConfig.FEE_PERCENT.get() / 100.0))
-                    .setScale(0, RoundingMode.CEILING).toBigInteger();
-        }
-        return cur.parse(AuctionConfig.FEE_AMOUNT.get()).orElse(BigInteger.ZERO);
-    }
-
     private static String fmt(Economy e, Currency c, BigInteger amount) {
         return e.format(c.of(amount));
     }
@@ -121,16 +109,6 @@ public final class AhTrade {
         }
         Currency cur = e.primaryCurrency();
         int qty = hand.getCount();
-        BigInteger value = auction ? price : price.multiply(BigInteger.valueOf(qty));
-        BigInteger fee = fee(p, cur, value);
-        if (fee.signum() > 0) {
-            Result r = e.withdraw(p.getUUID(), cur.of(fee), Cause.command("/ah sell", p.getUUID()).withReason("listing fee"));
-            if (!r.success()) {
-                Msg.send(p, "ah.fee_not_enough", "amount", fmt(e, cur, fee));
-                return false;
-            }
-            Msg.send(p, "ah.fee", "amount", fmt(e, cur, fee));
-        }
 
         Listing l = new Listing(Auctions.newId(), p.getUUID(), p.getGameProfile().getName(), auction);
         l.item = hand.copyWithCount(1);
@@ -156,6 +134,10 @@ public final class AhTrade {
 
     /** Buys the whole listing (amounts are fixed in the auction house). */
     public static boolean buy(ServerPlayer p, Listing l) {
+        if (!Perm.has(p, Perm.AH_BUY)) {
+            Msg.send(p, "general.no_permission");
+            return false;
+        }
         int count = l.left;
         Economy e = Economy.get();
         Optional<Currency> cur = Auctions.currency(l);
@@ -218,6 +200,10 @@ public final class AhTrade {
     // ---------- bid ----------
 
     public static boolean bid(ServerPlayer p, Listing l, BigInteger amount) {
+        if (!Perm.has(p, Perm.AH_BID)) {
+            Msg.send(p, "general.no_permission");
+            return false;
+        }
         Economy e = Economy.get();
         Optional<Currency> cur = Auctions.currency(l);
         if (e == null || cur.isEmpty() || !l.active() || !l.auction || l.item == null) {
@@ -259,6 +245,10 @@ public final class AhTrade {
             Msg.send(p, "ah.gone");
             return false;
         }
+        if (l.item == null) {
+            Msg.send(p, "ah.item_unreadable");
+            return false;
+        }
         if (l.auction && l.bids > 0) {
             Msg.send(p, "ah.cancel_has_bids");
             return false;
@@ -272,6 +262,10 @@ public final class AhTrade {
     public static boolean adminRemove(ServerPlayer staff, Listing l) {
         if (!l.active()) {
             Msg.send(staff, "ah.gone");
+            return false;
+        }
+        if (l.item == null) {
+            Msg.send(staff, "ah.item_unreadable");
             return false;
         }
         Auctions.refundTopBid(l, false);
@@ -302,9 +296,11 @@ public final class AhTrade {
                 ResourceLocation id = ResourceLocation.tryParse(m.getKey());
                 Optional<Currency> cur = id == null ? Optional.empty() : e.currency(id);
                 if (cur.isEmpty()) continue;
-                Result r = e.deposit(p.getUUID(), cur.get().of(m.getValue()), Cause.command("/ah collect", p.getUUID()));
+                BigInteger pay = Economy.payable(cur.get(), m.getValue());
+                if (pay.signum() <= 0) continue;
+                Result r = e.deposit(p.getUUID(), cur.get().of(pay), Cause.command("/ah collect", p.getUUID()));
                 if (r.success()) {
-                    CollectionBox.removeMoney(p.getUUID(), m.getKey());
+                    CollectionBox.takeMoney(p.getUUID(), m.getKey(), pay);
                     n++;
                 }
             }

@@ -19,7 +19,7 @@ import java.util.List;
 
 /**
  * Sell screen (/ah sell, 3 rows, LOCKED): the item in hand · price · buy now / auction ·
- * duration · fee · cancel · confirm. The item stays in the player's hand until confirm.
+ * duration · cancel · confirm. The item stays in the player's hand until confirm.
  */
 public final class AhSellMenu extends Menu {
 
@@ -73,17 +73,10 @@ public final class AhSellMenu extends Menu {
             refresh();
         }));
 
-        BigInteger value = auction ? price : price.multiply(BigInteger.valueOf(item.getCount()));
-        BigInteger fee = AhTrade.fee(viewer, cur, value);
-        if (fee.signum() > 0) {
-            set(16, Button.display(Icons.named(Items.PAPER, Msg.menu("ah_menu.fee", "amount", e.format(cur.of(fee))))));
-        }
-
         set(18, Button.of(Icons.named(Items.RED_STAINED_GLASS_PANE, Msg.menu("menu.no")), (p, c) -> close()));
         List<Component> summary = new ArrayList<>();
         summary.add(Msg.menu("shop_menu.sell_line", "count", item.getCount(), "item", item.getHoverName().getString()));
         if (price.signum() > 0) summary.add(com.tac5studios.elementseconomy.util.Text.color(priceText).withStyle(s -> s.withItalic(false)));
-        if (fee.signum() > 0) summary.add(Msg.menu("ah_menu.fee", "amount", e.format(cur.of(fee))));
         set(26, Button.of(Icons.named(Items.LIME_STAINED_GLASS_PANE, Msg.menu("ah_menu.confirm_list"), summary), (p, c) -> {
             if (price.signum() <= 0) {
                 Msg.send(p, "ah.price_needed");

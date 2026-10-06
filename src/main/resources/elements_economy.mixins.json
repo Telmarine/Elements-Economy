@@ -4,7 +4,9 @@
   "package": "com.tac5studios.elementseconomy.mixin",
   "compatibilityLevel": "JAVA_21",
   "server": [
-    "ServerPlayerGameModeMixin"
+    "ServerPlayerGameModeMixin",
+    "CreateDrillMixin",
+    "CreateMovingDrillMixin"
   ],
   "injectors": {
     "defaultRequire": 1

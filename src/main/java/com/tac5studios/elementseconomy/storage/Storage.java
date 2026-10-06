@@ -71,13 +71,11 @@ public final class Storage {
             backend = create(wanted, folder);
             backend.open();
         } catch (Exception | LinkageError ex) { // LinkageError = a bundled driver failed to load
-            ElementsEconomy.LOGGER.warn("[Economy] Storage '{}' could not start ({}). Using json instead.", wanted, ex.toString());
-            backend = new JsonBackend(folder);
-            try {
-                backend.open();
-            } catch (Exception fatal) {
-                throw new RuntimeException("Elements: Economy could not create its data folder: " + folder, fatal);
-            }
+            // Never fall back to an empty store: every player would look new and get the starting balance again,
+            // and anything saved there would split the economy in two. Stop and let the owner fix the storage.
+            ElementsEconomy.LOGGER.error("[Economy] Storage '{}' could not start. The server will not start without it, "
+                    + "so no balances are lost or duplicated. Fix the connection or the backend in storage.toml, then start again.", wanted, ex);
+            throw new IllegalStateException("Elements: Economy storage '" + wanted + "' could not start: " + ex, ex);
         }
 
         store = new DataStore(backend);
@@ -137,6 +135,7 @@ public final class Storage {
 
     public static void stop() {
         if (store == null) return;
+        StorageConvert.finish(store);
         store.close();
         store = null;
         TransactionLog.stop();

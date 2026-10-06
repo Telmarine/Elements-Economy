@@ -47,7 +47,7 @@ public final class Features {
 
     // Auction house
     public static final BooleanValue AUCTION, AH_OPEN, AH_SELL, AH_BUY_NOW, AH_BIDS, AH_CANCEL, AH_COLLECT, AH_SEARCH,
-            AH_CATEGORIES, AH_MY_LISTINGS, AH_SALE_ALERTS, AH_LISTING_FEE, AH_SALES_TAX, AH_RANK_LIMITS,
+            AH_CATEGORIES, AH_MY_LISTINGS, AH_SALE_ALERTS, AH_SALES_TAX, AH_RANK_LIMITS,
             AH_ADMIN_REMOVE, AH_BLACKLIST;
 
     // Server shops (staff only)
@@ -187,7 +187,6 @@ public final class Features {
         AH_CATEGORIES = sw(b, "categories", true, "Sort listings into categories.");
         AH_MY_LISTINGS = sw(b, "my_listings", true, "Players can see their own listings.");
         AH_SALE_ALERTS = sw(b, "sale_alerts", true, "Tell sellers when an item sells or a bid is placed.");
-        AH_LISTING_FEE = sw(b, "listing_fee", false, "Charge money to list an item. Amount is set in auction_house.toml.");
         AH_SALES_TAX = sw(b, "sales_tax", false, "Take a cut of each sale. Amount is set in auction_house.toml.");
         AH_RANK_LIMITS = sw(b, "rank_limits", true, "Limit how many listings each rank can have.");
         AH_ADMIN_REMOVE = sw(b, "admin_remove", true, "Staff can remove any listing. (restart)");

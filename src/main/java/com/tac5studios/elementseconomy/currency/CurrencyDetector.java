@@ -60,10 +60,16 @@ public final class CurrencyDetector {
 
     @SubscribeEvent
     public static void onServerAboutToStart(ServerAboutToStartEvent event) {
+        refresh();
+    }
+
+    /** Detection at startup and on /economy reload. Does nothing (finds nothing) when auto_detect is off. */
+    public static void refresh() {
         if (!Features.on(Features.CURRENCY_AUTO_DETECT)) {
             found = List.of();
             itemValues = Map.of();
             pendingVanilla = Set.of();
+            denominations = Map.of();
             return;
         }
         detect();

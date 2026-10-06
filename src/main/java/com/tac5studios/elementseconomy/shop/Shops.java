@@ -57,6 +57,13 @@ public final class Shops {
             }
         }
         if (n > 0) ElementsEconomy.LOGGER.info("[Economy] {} player shops loaded.", n);
+        // Pipes and funnels in chunks that loaded before this point cached the plain container.
+        // Make them ask again so they get the shop lock.
+        for (Shop s : BY_ID.values()) {
+            Level level = e.getServer().getLevel(s.dimension);
+            if (level == null) continue;
+            for (BlockPos bp : s.positions) level.invalidateCapabilities(bp);
+        }
     }
 
     @SubscribeEvent

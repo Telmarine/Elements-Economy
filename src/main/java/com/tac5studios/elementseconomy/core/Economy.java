@@ -329,6 +329,27 @@ public final class Economy implements EconomyService {
                 m -> backend(m.currency()).withdraw(player, m.amount(), cause));
     }
 
+    /**
+     * The part of an amount that can actually be paid out. For coin currencies, value smaller than the
+     * smallest coin can't be handed over, so it stays where it is (till, collection box) instead of vanishing.
+     */
+    public static BigInteger payable(Currency currency, BigInteger amount) {
+        return currency instanceof ItemCurrency ic ? ic.payable(amount) : amount.max(BigInteger.ZERO);
+    }
+
+    /**
+     * An amount from a config file. Unlike typed prices, values that aren't whole coins are rounded up
+     * instead of being ignored (so a fee of 10 with a smallest coin of 50 becomes 50, not free).
+     */
+    public static java.util.Optional<BigInteger> configAmount(Currency currency, String text) {
+        return Amounts.parse(text, currency.decimals()).map(v -> roundUp(currency, v));
+    }
+
+    /** For coin currencies, the next amount that whole coins can pay (prices, bids). Others unchanged. */
+    public static BigInteger roundUp(Currency currency, BigInteger amount) {
+        return currency instanceof ItemCurrency ic && amount.signum() > 0 ? ic.roundUp(amount) : amount;
+    }
+
     @Override
     public Result deposit(UUID player, Money money, Cause cause) {
         return change(TransactionEvent.Type.DEPOSIT, player, null, money, cause,

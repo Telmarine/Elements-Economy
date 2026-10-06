@@ -348,10 +348,16 @@ public final class SwitchOver {
         return c;
     }
 
-    /** A converted price never drops to zero (that would take the item off sale). */
+    /**
+     * A converted price never drops to zero (that would take the item off sale), and for a coin
+     * currency it is rounded up to whole coins so it can always be paid.
+     */
     private static BigInteger price(Step step, BigInteger old) {
         if (old.signum() <= 0) return old;
-        return step.convert(old).max(BigInteger.ONE);
+        BigInteger p = step.convert(old).max(BigInteger.ONE);
+        Economy e = Economy.get();
+        ResourceLocation to = ResourceLocation.tryParse(step.to());
+        return e == null || to == null ? p : e.currency(to).map(c -> Economy.roundUp(c, p)).orElse(p);
     }
 
     // ---------- balances ----------
@@ -413,7 +419,7 @@ public final class SwitchOver {
         Economy e = Economy.get();
         BigInteger have = e.balance(id, from).amount();
         if (have.signum() <= 0) return 0;
-        BigInteger out = step.convert(have);
+        BigInteger out = Economy.payable(to, step.convert(have)); // coin currencies: whole coins only
         if (out.signum() <= 0) return 0; // worth less than the smallest new unit: left as it is
         Cause cause = Cause.system("currency switch");
         if (!e.canDeposit(id, to.of(out)).success()) return -1;

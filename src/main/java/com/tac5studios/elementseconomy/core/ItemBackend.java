@@ -1,5 +1,6 @@
 package com.tac5studios.elementseconomy.core;
 
+import com.tac5studios.elementseconomy.ElementsEconomy;
 import com.tac5studios.elementsvault.Cause;
 import com.tac5studios.elementsvault.Currency;
 import com.tac5studios.elementsvault.Result;
@@ -66,15 +67,26 @@ public final class ItemBackend implements CurrencyBackend {
     public Result deposit(UUID player, BigInteger amount, Cause cause) {
         ServerPlayer p = online(player);
         if (p == null) return offline(amount);
+        // Only whole coins can be handed over. The result says what was really paid, so callers that
+        // keep a stored amount (tills, collection boxes) take off only that and keep the rest.
+        BigInteger paid = currency.payable(amount);
+        if (paid.signum() <= 0) return notWholeCoins(amount);
+        if (!paid.equals(amount)) {
+            ElementsEconomy.LOGGER.debug("[Economy] {} of {} is smaller than any coin and was not paid out.",
+                    amount.subtract(paid), currency.id());
+        }
         long before = Coins.count(p, currency.namespace());
-        long left = Coins.give(p, currency.namespace(), Amounts.toLong(amount));
-        BigInteger paid = amount.subtract(BigInteger.valueOf(left));
+        Coins.give(p, currency.namespace(), Amounts.toLong(paid));
         return Result.ok(currency.of(paid), currency.of(before), currency.of(Coins.count(p, currency.namespace())));
     }
 
     @Override
     public boolean canDeposit(UUID player, BigInteger amount) {
         return online(player) != null;
+    }
+
+    private Result notWholeCoins(BigInteger amount) {
+        return Result.fail(Result.Reason.INVALID_AMOUNT, currency.of(amount), Component.literal("Amount can't be paid in whole coins"));
     }
 
     private Result offline(BigInteger amount) {

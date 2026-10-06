@@ -58,7 +58,7 @@ public final class TransactionLog {
      * Add one line. Example:
      * 14:02:11 PAY Steve -> Alex 250 Coins (elements_economy:digital) "for the iron"
      *
-     * @param kind   short tag: PAY, GIVE, TAKE, SET, RESET, SHOP_BUY, SHOP_SELL, AH_SALE, AH_FEE, EXCHANGE, SWITCH ...
+     * @param kind   short tag: PAY, GIVE, TAKE, SET, RESET, SHOP_BUY, SHOP_SELL, AH_SALE, AH_TAX, EXCHANGE, SWITCH ...
      * @param detail the rest of the line, already readable
      */
     public static void add(String kind, String detail) {

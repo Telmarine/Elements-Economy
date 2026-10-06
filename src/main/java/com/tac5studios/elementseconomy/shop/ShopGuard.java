@@ -12,6 +12,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.piston.PistonStructureResolver;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
@@ -20,6 +21,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
+import net.neoforged.neoforge.event.level.PistonEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,7 @@ import java.util.UUID;
  *    (sneak with an empty hand opens the container itself). Staff with economy.shop.bypass can sneak to open it.
  *  - Breaking: only the owner (removes the shop) and staff. Linked stock vaults likewise.
  *  - Explosions skip shops and linked vaults.
+ *  - Pistons and Create (drills, saws, contraptions) can't break or move shops and linked vaults.
  *  - Nobody but the owner can join a chest onto a shop chest to reach its stock.
  */
 @EventBusSubscriber(modid = ElementsEconomy.MOD_ID, value = Dist.DEDICATED_SERVER)
@@ -60,9 +63,19 @@ public final class ShopGuard {
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onUse(PlayerInteractEvent.RightClickBlock e) {
-        if (!(e.getEntity() instanceof ServerPlayer p) || !Features.on(Features.PLAYER_SHOPS)) return;
+        if (!(e.getEntity() instanceof ServerPlayer p)) return;
         Shop s = Shops.at(e.getLevel(), e.getPos());
         if (s == null) return;
+
+        if (!Features.on(Features.PLAYER_SHOPS)) {
+            // Shops are switched off: no shop screens, but existing shops stay locked.
+            // The owner and staff can still open the container to take their stock back.
+            if (s.owner.equals(p.getUUID()) || p.hasPermissions(2) || !Features.on(Features.PS_PROTECTION)) return;
+            e.setCanceled(true);
+            e.setCancellationResult(InteractionResult.FAIL);
+            if (e.getHand() == InteractionHand.MAIN_HAND) Msg.send(p, "shop.protected", "owner", s.ownerName);
+            return;
+        }
 
         boolean owner = s.owner.equals(p.getUUID());
         boolean sneaking = p.isSecondaryUseActive();
@@ -127,6 +140,36 @@ public final class ShopGuard {
         if (!Features.on(Features.PLAYER_SHOPS, Features.PS_EXPLOSION_BLOCK)) return;
         Level level = e.getLevel();
         e.getAffectedBlocks().removeIf(pos -> Shops.isShop(level, pos) || linkedVault(level, pos));
+    }
+
+    /**
+     * True for a shop container or a linked stock vault. Used by every non-player guard (pistons, Create).
+     * Protection stays on for shops that exist even when player shops are switched off, so their stock stays safe.
+     */
+    public static boolean isProtected(Level level, BlockPos pos) {
+        if (level == null || level.isClientSide() || !Features.on(Features.PS_PROTECTION)) return false;
+        return Shops.isShop(level, pos) || linkedVault(level, pos);
+    }
+
+    /** Pistons can't push, pull or pop shops and linked vaults (shulker-box shops would break). */
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void onPiston(PistonEvent.Pre e) {
+        if (!(e.getLevel() instanceof Level level) || level.isClientSide()) return;
+        PistonStructureResolver resolver = e.getStructureHelper();
+        if (resolver == null) return;
+        resolver.resolve();
+        for (BlockPos pos : resolver.getToPush()) {
+            if (isProtected(level, pos)) {
+                e.setCanceled(true);
+                return;
+            }
+        }
+        for (BlockPos pos : resolver.getToDestroy()) {
+            if (isProtected(level, pos)) {
+                e.setCanceled(true);
+                return;
+            }
+        }
     }
 
     private static boolean linkedVault(Level level, BlockPos pos) {

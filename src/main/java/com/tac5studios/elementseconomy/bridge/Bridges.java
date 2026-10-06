@@ -10,6 +10,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 /**
@@ -73,10 +75,26 @@ public final class Bridges {
     public static <T> T onServer(Supplier<T> work) {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null || server.isSameThread()) return work.get();
+        // 0 = waiting, 1 = running, 2 = given up. A call that timed out before it started never runs,
+        // so the caller is never told "failed" while money still moves later.
+        AtomicInteger state = new AtomicInteger();
+        java.util.concurrent.CompletableFuture<T> future = server.submit(() -> state.compareAndSet(0, 1) ? work.get() : null);
         try {
-            return server.submit(work).get(10, TimeUnit.SECONDS);
+            return future.get(10, TimeUnit.SECONDS);
+        } catch (TimeoutException timeout) {
+            if (state.compareAndSet(0, 2)) {
+                throw new IllegalStateException("Economy call timed out on the server thread; nothing was changed", timeout);
+            }
+            try {
+                return future.get(60, TimeUnit.SECONDS); // already running: wait for the real result
+            } catch (TimeoutException stuck) {
+                ElementsEconomy.LOGGER.error("[Economy] A money call from another mod has been running on the server thread for over a minute.");
+                throw new IllegalStateException("Economy call still running on the server thread", stuck);
+            } catch (Exception ex) {
+                throw new IllegalStateException("Economy call failed on the server thread", ex);
+            }
         } catch (Exception ex) {
-            throw new IllegalStateException("Economy call timed out on the server thread", ex);
+            throw new IllegalStateException("Economy call failed on the server thread", ex);
         }
     }
 

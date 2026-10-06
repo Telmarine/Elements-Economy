@@ -9,6 +9,9 @@ import java.util.Optional;
 /** Reads and writes amounts. Stored amounts are whole numbers in the smallest unit. */
 public final class Amounts {
 
+    /** Longest number a player can type (about a quintillion quintillion), suffix not counted. */
+    private static final int MAX_DIGITS = 40;
+
     private Amounts() {}
 
     /** 125050 with 2 decimals -> "1,250.50". */
@@ -35,6 +38,9 @@ public final class Amounts {
             };
             s = s.substring(0, s.length() - 1);
         }
+        // Plain digits with one optional decimal point only. No signs, no exponents ("1e9999999" would
+        // build a number with millions of digits), and no more digits than any balance could need.
+        if (s.length() > MAX_DIGITS || !s.matches("\\d*\\.?\\d*") || !s.matches(".*\\d.*")) return Optional.empty();
         try {
             BigDecimal v = new BigDecimal(s).multiply(mult).movePointRight(decimals);
             if (v.signum() <= 0) return Optional.empty();

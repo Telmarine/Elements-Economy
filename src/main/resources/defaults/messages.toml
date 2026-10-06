@@ -195,6 +195,10 @@ not_enough = "{prefix}&cYou need &e{amount}&c. You have &e{balance}&c."
 out_of_stock = "{prefix}&cThis shop is out of {item}."
 # The shop isn't buying.
 not_buying = "{prefix}&cThis shop is not buying right now."
+# The owner changed the price or amount while the customer was confirming.
+price_changed = "{prefix}&cThe price just changed. Take another look and try again."
+# Staff tried to collect a coin till while the owner is offline.
+owner_offline = "{prefix}&cThe owner of {shop} must be online to collect coins."
 # Not enough room for the items.
 no_room = "{prefix}&cNot enough inventory space."
 # Daily limit reached for that item.
@@ -315,10 +319,8 @@ menu_remove = "&cRemove this item"
 [ah]
 # Item listed.
 listed = "{prefix}&7Listed &f{count}x {item} &7for &e{amount}&7."
-# Listing fee charged.
-fee = "{prefix}&7Listing fee paid: &e{amount}&7."
-# Can't pay the listing fee.
-fee_not_enough = "{prefix}&cListing costs &e{amount}&c."
+# The listing's item can't be read (its mod was removed). It stays safe until the mod is back.
+item_unreadable = "{prefix}&cThat listing's item can't be read right now (its mod is missing). It is kept safe until the mod is back."
 # Listing limit reached.
 limit = "{prefix}&cYou already have {count} of {limit} listings."
 # The item can't be sold here.
@@ -457,8 +459,6 @@ price_each_label = "&6Price each"
 start_bid_label = "&6Starting bid"
 # Duration.
 duration = "&eLasts &f{hours}h"
-# Fee.
-fee = "&7Listing fee: &e{amount}"
 # Confirm listing.
 confirm_list = "&a&lList it"
 # My listings, none.
@@ -667,7 +667,7 @@ version = "{prefix}&7Elements: Economy &f{version} &8| &7Currency: &f{currency} 
 # Storage convert started.
 convert_started = "{prefix}&7Copying data to {type}..."
 # Storage convert finished.
-convert_done = "{prefix}&aData copied to {type}. Set backend = \"{type}\" in storage.toml and restart."
+convert_done = "{prefix}&aData copied to {type}. Set backend = \"{type}\" in storage.toml and restart. Changes made before the restart are copied again when the server stops."
 # Storage convert failed.
 convert_failed = "{prefix}&cCopy to {type} failed: {error}"
 # Already the active storage type.

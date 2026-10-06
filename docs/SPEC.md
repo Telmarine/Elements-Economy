@@ -58,8 +58,8 @@ Elements: Economy is a **currency bridge**. It detects and identifies the curren
    - While Elements: Economy is a mod's provider, currency detection skips that mod. Its old balances are not moved by the bridge (see Migration).
    - Other mods' APIs are compiled against stubs in src/main/java (net/impactdev, net/kyori, com/epherical), excluded from the jar.
    - **Lightman's Currency money type** (default off): needs a client add-on. Lightman's clients error on unknown money types ("No CurrencyType … could be found"). Lightman's money is still read and written through its API adapter.
-6. **Container shops** — chests, barrels, shulker boxes and similar storage (vanilla classes, `c:chests`/`c:barrels`, allow tag) can be shops; cabinets, furniture and machines cannot. One container sells many items through a paged table, one price per item type. Create, remove, buy, sell/buy-back, admin shops, info, sale alerts, protection (guarded capability: no hoppers/pipes/Create extraction), explosion block, claim check (OPAC / FTB Chunks), rank limits, create fee. Create item vaults (tag `elements_economy:stock_vaults`) act as **stock vaults**: overflow storage that auto-restocks linked shop chests/barrels and covers large orders; never sold from directly. Safes (key-lockable) and sacks are never shop containers. Details: docs/UI.md.
-7. **Auction house** — chest-menu GUI, sell, buy now, bids, cancel, collect, search, categories, my listings, sale alerts, listing fee, sales tax, rank limits, admin remove, blacklist.
+6. **Container shops** — chests, barrels, shulker boxes and similar storage (vanilla classes, `c:chests`/`c:barrels`, allow tag) can be shops; cabinets, furniture and machines cannot. One container sells many items through a paged table, one price per item type. Create, remove, buy, sell/buy-back, admin shops, info, sale alerts, protection (guarded capability: no hoppers/pipes/Create extraction; pistons and Create drills, saws and contraptions can't break or move shops or linked vaults), explosion block, claim check (OPAC / FTB Chunks), rank limits, create fee. Create item vaults (tag `elements_economy:stock_vaults`) act as **stock vaults**: overflow storage that auto-restocks linked shop chests/barrels and covers large orders; never sold from directly. Safes (key-lockable) and sacks are never shop containers. Details: docs/UI.md.
+7. **Auction house** — chest-menu GUI, sell, buy now, bids, cancel, collect, search, categories, my listings, sale alerts, sales tax, rank limits, admin remove, blacklist.
 8. **NPC / admin shops** — open, buy, sell, create, edit, delete, shopkeeper NPC, /shop, stock limits, rank prices.
 9. **API** for other mods — read and change balances (switchable).
 
@@ -103,7 +103,7 @@ Found shops are bridged (`overlap_guard.bridge_found_shops`, plus `shop_bridge.i
 - /exchange deposit [amount] · /exchange withdraw <amount>
 - /shop create buy · /shop create sell · /shop rename <name> · /shop remove
 - /shop (server shops) · /ah (auction house)
-- /economy reload (messages.toml, currency_values.toml, currency list; .toml settings reload on save, "(restart)" ones need a restart) | version (version, primary currency, storage) | migrate [source] [confirm [again]] | storage convert <json|yaml|sqlite|mysql> (backup first, copy only; set the type in storage.toml and restart). Done (commands/AdminCommands, migrate/).
+- /economy reload (messages.toml, currency_values.toml, currency list; .toml settings reload on save, "(restart)" ones need a restart) | version (version, primary currency, storage) | migrate [source] [confirm [again]] | storage convert <json|yaml|sqlite|mysql> (backup first, copy only; set the type in storage.toml and restart; the final data is copied again when the server stops). Done (commands/AdminCommands, migrate/).
 - Node pattern: `economy.<feature>.<action>`.
 
 ## Files so far

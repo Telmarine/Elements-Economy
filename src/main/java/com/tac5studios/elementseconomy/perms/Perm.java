@@ -110,8 +110,6 @@ public final class Perm {
     public static final String AH_CANCEL = node("ah.cancel", Who.PLAYER, Features.AUCTION, Features.AH_CANCEL);
     public static final String AH_COLLECT = node("ah.collect", Who.PLAYER, Features.AUCTION, Features.AH_COLLECT);
     public static final String AH_ALERTS = node("ah.alerts", Who.PLAYER, Features.AUCTION, Features.AH_SALE_ALERTS);
-    /** No listing fee. */
-    public static final String AH_NO_FEE = node("ah.nofee", Who.STAFF, Features.AUCTION, Features.AH_LISTING_FEE);
     /** No sales tax. */
     public static final String AH_NO_TAX = node("ah.notax", Who.STAFF, Features.AUCTION, Features.AH_SALES_TAX);
     /** No limit on how many listings you have. */
