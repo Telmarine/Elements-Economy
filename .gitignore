@@ -1,0 +1,8 @@
+build/
+.gradle/
+.idea/
+out/
+*.iml
+runs/
+libs/
+docs/currency-research.md

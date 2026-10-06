@@ -1,0 +1,716 @@
+# ============================================================
+#  ELEMENTS: ECONOMY  —  messages
+#  Every line a player or admin sees. Colors: &a &l &#FFD700.
+#  {prefix} is replaced with general.prefix.
+#  Leave a message empty ("") to send nothing.
+#  Missing lines use the built-in text, so updates never break this file.
+# ============================================================
+
+[general]
+# Put in front of most messages.
+prefix = "&6[Economy]&r "
+# The player doesn't have permission.
+no_permission = "{prefix}&cYou don't have permission to do that."
+# The feature is switched off in features.toml.
+disabled = "{prefix}&cThat feature is turned off on this server."
+# No player with that name.
+player_not_found = "{prefix}&cNo player called &f{player}&c."
+# The player must be online for this.
+player_offline = "{prefix}&c{player} must be online for this."
+# The amount typed is not a number or is zero or less.
+bad_amount = "{prefix}&c'{input}' is not a valid amount."
+# Only a player can run this, not the console.
+players_only = "{prefix}&cOnly players can do that."
+# Something went wrong while saving or reading.
+error = "{prefix}&cSomething went wrong. Tell an admin."
+# Shown while the active currency can't be reached.
+currency_unavailable = "{prefix}&cMoney is not available right now. Try again soon."
+
+[balance]
+# /bal for yourself. {balance} uses the active currency.
+self = "{prefix}&7Balance: &e{balance}"
+# /bal <player>.
+other = "{prefix}&7{player}'s balance: &e{balance}"
+# The active currency mod has no balance for this player yet.
+none = "{prefix}&7No balance yet."
+
+[pay]
+# Sent to the payer.
+sent = "{prefix}&7You paid &f{player} &e{amount}&7."
+# Sent to the person paid.
+received = "{prefix}&f{player} &7paid you &e{amount}&7."
+# The payer doesn't have enough.
+not_enough = "{prefix}&cYou don't have enough. You have &e{balance}&c."
+# Paying yourself.
+self = "{prefix}&cYou can't pay yourself."
+# The other player turned off payments.
+blocked = "{prefix}&c{player} is not accepting payments."
+# The currency can't change offline balances.
+offline_not_supported = "{prefix}&c{player} must be online to receive this currency."
+# /pay toggle turned payments off.
+toggle_off = "{prefix}&7You are no longer accepting payments."
+# /pay toggle turned payments on.
+toggle_on = "{prefix}&7You are accepting payments again."
+
+[baltop]
+# Title line. {page} and {pages} are page numbers.
+header = "&6&lRichest players &7(page {page}/{pages})"
+# One row. {rank} is the position.
+line = "&7{rank}. &f{player} &8- &e{balance}"
+# Nothing to show.
+empty = "{prefix}&7No balances yet."
+# The currency can't list everyone's balance.
+not_supported = "{prefix}&cThis currency can't show a top list."
+
+[history]
+# Title line.
+header = "&6&lPayment history &7- {player} (page {page}/{pages})"
+# Money in.
+line_in = "&8{time} &a+{amount} &7from &f{other} &8{note}"
+# Money out.
+line_out = "&8{time} &c-{amount} &7to &f{other} &8{note}"
+# Nothing to show.
+empty = "{prefix}&7No payments yet."
+
+[eco]
+# /eco give.
+give = "{prefix}&7Gave &f{player} &e{amount}&7. New balance: &e{balance}"
+# /eco take.
+take = "{prefix}&7Took &e{amount} &7from &f{player}&7. New balance: &e{balance}"
+# /eco set.
+set = "{prefix}&7Set &f{player}&7's balance to &e{balance}&7."
+# /eco reset.
+reset = "{prefix}&7Reset &f{player}&7's balance to &e{balance}&7."
+# The active currency doesn't allow this change.
+not_supported = "{prefix}&cThe active currency doesn't allow that change."
+
+[exchange]
+# Coins turned into digital money.
+deposited = "{prefix}&7Deposited &e{coins} &7for &e{amount}&7."
+# Digital money turned into coins.
+withdrew = "{prefix}&7Withdrew &e{amount} &7as &e{coins}&7."
+# No coins to deposit.
+no_coins = "{prefix}&cYou have no coins to deposit."
+# Not enough room for the coins.
+no_room = "{prefix}&cNot enough inventory space. Coins that didn't fit were dropped at your feet."
+# Left over that can't be made with the coins available.
+remainder = "{prefix}&7{amount} could not be paid out in coins and stays in your balance."
+
+[currency]
+# Logged and shown to admins when currency mods are found.
+detected = "{prefix}&7Currency found: &f{currency} &8({mod})"
+# No currency mod found, digital money is used.
+digital = "{prefix}&7No currency mod found. Using digital money."
+# Admin warning when a vanilla item is listed as currency.
+vanilla_ask = "{prefix}&e{item} &7is listed as currency in currency_values.toml. Vanilla items are not money by default. Are you sure?"
+# Label of the confirm button.
+confirm_button = "&a&l[Confirm]"
+# Hover text of the confirm button.
+confirm_hover = "Count {item} as currency."
+# Label of the ignore button.
+ignore_button = "&c&l[Ignore]"
+# Hover text of the ignore button.
+ignore_hover = "Keep {item} as a normal item."
+# The vanilla item now counts as currency.
+confirmed = "{prefix}&a{item} now counts as currency."
+# The vanilla item will not count as currency.
+ignored = "{prefix}&7{item} will not count as currency."
+# /economy currency pending, nothing waiting.
+pending_none = "{prefix}&7No vanilla items are waiting for confirmation."
+# /economy currency pending, title.
+pending_header = "{prefix}&7{count} vanilla item(s) waiting:"
+# /economy currency pending, one row.
+pending_line = "&8 - &f{item}"
+# Confirm or ignore on an item that isn't waiting.
+not_pending = "{prefix}&c{item} is not waiting for confirmation."
+
+[switch]
+# Preview title.
+preview_header = "{prefix}&6Switch from &f{from} &6to &f{to}"
+# Preview: exchange rate example.
+preview_rate = "&7 Rate: &f{example}"
+# Preview: balances.
+preview_balances = "&7 Balances: &f{now} &7now, &f{later} &7at next login"
+# Preview: shops.
+preview_shops = "&7 Shop prices: &f{prices} &8| &7Server shop prices: &f{server} &8| &7Shop tills: &f{tills}"
+# Preview: auction house.
+preview_listings = "&7 Auction listings: &f{listings} &8| &7Collection boxes: &f{boxes}"
+# Preview: coin-priced shops left alone (item prices never become digital).
+preview_skipped = "&7 Left alone (item prices never become digital): &f{skipped}"
+# Preview: another mod's shops.
+preview_bridge = "&7 {bridge}: &f{changed} &7changed, &f{skipped} &7left alone"
+# How to go ahead.
+preview_confirm = "&7Type &e/economy currency switch confirm &7within 2 minutes to go ahead."
+# Backup taken before the switch.
+backup = "{prefix}&7Backup saved: &f{folder}"
+# The backup failed, nothing changed.
+backup_failed = "{prefix}&cBackup failed. Nothing was changed."
+# The switch finished.
+done = "{prefix}&aCurrency switched to &f{to}&a. &f{changed} &athings updated, &f{later} &abalances convert at next login."
+# No preview to confirm, or it ran out.
+nothing_pending = "{prefix}&cRun &e/economy currency switch <currency> &cfirst."
+# The new currency isn't installed or detected.
+unknown = "{prefix}&c{currency} is not an installed currency."
+# Already the server currency.
+same = "{prefix}&c{currency} is already the server currency."
+# No rate between the two currencies.
+no_rate = "{prefix}&cNo exchange rate between {from} and {to}. Add both to rates in economy.toml."
+# Another mod stopped the switch.
+cancelled = "{prefix}&cAnother mod stopped the switch. Nothing was changed."
+# Told to a player when their balance converts.
+converted = "{prefix}&7The server currency changed. Your &f{from} &7became &e{to}&7."
+
+[shop]
+# Look at a container to make it a shop.
+look_at_container = "{prefix}&cLook at a chest or barrel you placed."
+# The block can't be a shop.
+not_allowed = "{prefix}&cThat block can't be a shop."
+# The container is already a shop.
+already_shop = "{prefix}&cThat container is already a shop."
+# Not inside your own claim.
+not_your_claim = "{prefix}&cYou can only make shops inside your own claim."
+# Shop limit reached.
+limit = "{prefix}&cYou already own {count} of {limit} shops."
+# Create fee charged.
+fee = "{prefix}&7Shop fee paid: &e{amount}&7."
+# Can't pay the create fee.
+fee_not_enough = "{prefix}&cMaking a shop costs &e{amount}&c."
+# Buy shop created.
+created_buy = "{prefix}&aBuy shop created. Put items in it, then set prices with &e/shop manage&a."
+# Sell shop created.
+created_sell = "{prefix}&aSell shop created. Choose what you buy and your offer with &e/shop manage&a."
+# Shop renamed.
+renamed = "{prefix}&7Shop renamed to &f{name}&7."
+# Shop removed.
+removed = "{prefix}&7Shop removed. The container is normal again."
+# Not your shop.
+not_owner = "{prefix}&cThat's not your shop."
+# Bought from a shop.
+bought = "{prefix}&7Bought &f{count}x {item} &7for &e{amount}&7."
+# Sold to a shop.
+sold = "{prefix}&7Sold &f{count}x {item} &7for &e{amount}&7."
+# Not enough money to buy.
+not_enough = "{prefix}&cYou need &e{amount}&c. You have &e{balance}&c."
+# The shop ran out.
+out_of_stock = "{prefix}&cThis shop is out of {item}."
+# The shop isn't buying.
+not_buying = "{prefix}&cThis shop is not buying right now."
+# Not enough room for the items.
+no_room = "{prefix}&cNot enough inventory space."
+# Daily limit reached for that item.
+daily_limit = "{prefix}&cThis shop's daily limit for {item} is reached."
+# Sale alert to the owner.
+alert_sold = "{prefix}&f{player} &7bought &f{count}x {item} &7from &f{shop} &7for &e{amount}&7."
+# Purchase alert to the owner.
+alert_bought = "{prefix}&f{player} &7sold you &f{count}x {item} &7at &f{shop} &7for &e{amount}&7."
+# Owner warning when a buy shop runs out.
+alert_empty = "{prefix}&e{shop} &7is out of &f{item}&7."
+# Someone tried to open or break your shop.
+protected = "{prefix}&cThis is &f{owner}&c's shop."
+# The shop is closed.
+closed = "{prefix}&c{shop} is closed right now."
+# Explosion blocked near a shop.
+explosion_blocked = ""
+# New item in the shop with no price yet.
+no_price = "{prefix}&7{item} in &f{shop} &7has no price yet. Set one first."
+# Owner collected the shop's earnings.
+collected = "{prefix}&7Collected &e{amount} &7from &f{shop}&7."
+# Nothing to collect.
+nothing_to_collect = "{prefix}&7Nothing to collect."
+# Owner added money for a sell shop to pay with.
+funds_added = "{prefix}&7Added &e{amount} &7to &f{shop}&7."
+# The shop can't be removed while its money can't be paid out.
+till_not_empty = "{prefix}&cThis shop still holds money that can't be paid out right now. Collect it first."
+
+[stockvault]
+# Vault linked to a shop.
+linked = "{prefix}&7Stock vault linked to &f{shop}&7."
+# Vault unlinked.
+unlinked = "{prefix}&7Stock vault unlinked from &f{shop}&7."
+# The block is not a stock vault.
+not_vault = "{prefix}&cThat block is not a stock vault."
+# Restocked a shop.
+restocked = ""
+# The vault is too far from the shop.
+too_far = "{prefix}&cThe vault is too far from the shop."
+# Vault registered; next step is linking shops.
+registered = "{prefix}&7Stock vault ready. Look at each of your shops and type &e/shop vault add&7."
+# /shop vault add before linking a vault.
+none_selected = "{prefix}&cLook at a vault and type &e/shop vault link &cfirst."
+# Only buy shops use vaults.
+buy_only = "{prefix}&cOnly buy shops can use a stock vault."
+# Vault removed from every shop.
+unlinked_all = "{prefix}&7Stock vault removed from all your shops."
+
+[servershop]
+# Server shop created.
+created = "{prefix}&aServer shop &f{name} &acreated."
+# Server shop deleted.
+deleted = "{prefix}&7Server shop &f{name} &7deleted."
+# Name already used.
+exists = "{prefix}&cA server shop called {name} already exists."
+# No shop with that name.
+not_found = "{prefix}&cNo server shop called {name}."
+# Stock limit reached.
+stock_limit = "{prefix}&cThis shop has no more {item} today."
+# Linked to an NPC, villager or block.
+linked = "{prefix}&7{name} now opens from &f{target}&7."
+# Unlinked.
+unlinked = "{prefix}&7{name} no longer opens from that."
+# Nothing linked there.
+not_linked = "{prefix}&cThat isn't linked to {name}."
+# Look at an NPC to link.
+look_at_npc = "{prefix}&cLook at the NPC to link."
+# Look at a block to link.
+look_at_block = "{prefix}&cLook at the block to link."
+# /economy shop list, none.
+list_empty = "{prefix}&7No server shops yet."
+# /economy shop list, title.
+list_header = "{prefix}&7{count} server shop(s):"
+# /economy shop list, one line.
+list_line = "&8 - &f{name} &8({id}) &7{type}, {items} item(s), opens from {links} place(s)"
+# Shop line in item tooltips.
+menu_owner = "&7Shop: &f{shop}"
+# Editor, empty.
+menu_empty = "&7Hold an item and click the hopper to add it"
+# Stock left / max.
+menu_stock = "&7Stock: &f{count}&7/&f{max}"
+# Refill.
+menu_refill = "&7Refills &f{count} &7every &f{minutes} &7min"
+# Rank prices count.
+menu_rank_prices = "&d{count} rank price(s)"
+# Editor row label, buy shop.
+menu_selling = "&bSelling to players"
+# Editor row label, sell shop.
+menu_buying = "&6Buying from players"
+# Add item button.
+menu_add = "&eAdd items"
+# Hopper tooltip: shift-click to add.
+menu_add_shift = "&7Shift-click an item in your inventory"
+# Hopper clicked with an empty hand.
+add_how = "{prefix}&7Shift-click an item in your inventory to add it, or hold it and click the hopper."
+# Links button.
+menu_links = "&7Opens from &f{count} &7place(s)"
+# Links hint.
+menu_links_hint = "&8Link with /economy shop link <name> npc|villager|block"
+# Stock limit button.
+menu_stock_limit = "&6Stock limit"
+# Stock limit hint.
+menu_stock_hint = "&70 = unlimited. Setting it also fills the stock."
+# Anvil prompt, stock limit.
+enter_stock = "Max stock (0 = unlimited)"
+# Refill hint.
+menu_refill_hint = "&7Type: amount minutes, e.g. 16 30"
+# Anvil prompt, refill.
+enter_refill = "Amount and minutes, e.g. 16 30"
+# Rank prices button.
+menu_rank_title = "&dRank prices"
+# Rank prices hint.
+menu_rank_hint = "&7Type: rank price, e.g. vip 40. Use - to remove: vip -"
+# Anvil prompt, rank price.
+enter_rank = "rank price, e.g. vip 40"
+# Remove row button.
+menu_remove = "&cRemove this item"
+
+[ah]
+# Item listed.
+listed = "{prefix}&7Listed &f{count}x {item} &7for &e{amount}&7."
+# Listing fee charged.
+fee = "{prefix}&7Listing fee paid: &e{amount}&7."
+# Can't pay the listing fee.
+fee_not_enough = "{prefix}&cListing costs &e{amount}&c."
+# Listing limit reached.
+limit = "{prefix}&cYou already have {count} of {limit} listings."
+# The item can't be sold here.
+blacklisted = "{prefix}&cThat item can't be sold in the auction house."
+# Hold an item to sell.
+hold_item = "{prefix}&cHold the item you want to sell."
+# Bought a listing.
+bought = "{prefix}&7Bought &f{count}x {item} &7for &e{amount}&7."
+# Bid placed.
+bid = "{prefix}&7You bid &e{amount} &7on &f{item}&7."
+# Bid too low.
+bid_low = "{prefix}&cThe lowest bid is &e{amount}&c."
+# Outbid alert.
+outbid = "{prefix}&7You were outbid on &f{item}&7. Your &e{amount} &7is back in /ah collect."
+# Won an auction.
+won = "{prefix}&aYou won &f{item} &afor &e{amount}&a. Get it from /ah collect."
+# Sale alert to the seller.
+sold = "{prefix}&f{player} &7bought your &f{count}x {item} &7for &e{amount}&7."
+# Sales tax taken.
+tax = "{prefix}&7Sales tax: &e{amount}&7."
+# Listing ended with no buyer.
+expired = "{prefix}&7Your &f{item} &7didn't sell. Get it from /ah collect."
+# Listing cancelled.
+cancelled = "{prefix}&7Listing cancelled. Get your item from /ah collect."
+# Can't cancel with bids on it.
+cancel_has_bids = "{prefix}&cYou can't cancel a listing that has bids."
+# Items or money waiting on join.
+waiting = "{prefix}&7You have things waiting in &e/ah collect&7."
+# Nothing to collect.
+nothing = "{prefix}&7Nothing to collect."
+# Collected.
+collected = "{prefix}&7Collected {count} thing(s)."
+# The listing is gone.
+gone = "{prefix}&cThat listing is no longer available."
+# Your own listing.
+own = "{prefix}&cYou can't buy your own listing."
+# Admin removed a listing.
+removed = "{prefix}&7Listing removed. It was sent back to {player}."
+# Seller alert for a new bid.
+bid_alert = "{prefix}&f{player} &7bid &e{amount} &7on your &f{item}&7."
+# Price not set on the sell screen.
+price_needed = "{prefix}&cSet a price first."
+# Blacklist added.
+blacklist_added = "{prefix}&7{item} can no longer be listed."
+# Blacklist removed.
+blacklist_removed = "{prefix}&7{item} can be listed again."
+# Blacklist title.
+blacklist_header = "{prefix}&7{count} item(s) can't be listed:"
+# Blacklist line.
+blacklist_line = "&8 - &f{item}"
+
+[ah_menu]
+# Nothing listed.
+empty = "&7Nothing listed right now"
+# Seller tooltip.
+seller_listings = "&7Active listings: &f{count}"
+# Your own listing.
+you = "&aYou"
+# Buy now listing.
+type_buy_now = "&aBuy now"
+# Auction listing.
+type_auction = "&bAuction"
+# Listing number.
+listing = "&8Listing {id}"
+# Staff remove hint.
+staff_remove = "&cStaff: shift-right-click to remove"
+# Current bid.
+current_bid = "&7Current bid: &e{amount}"
+# Starting bid.
+start_bid = "&7Starting bid: &e{amount}"
+# Lowest next bid.
+next_bid = "&7Lowest next bid: &e{amount}"
+# Number of bids.
+bids = "&7Bids: &f{count}"
+# Highest bidder.
+highest = "&aYou're the highest bidder"
+# Buy-now price.
+price_all = "&7Price: &e{amount}"
+# Amount up for auction.
+lot = "&fAmount: &e{count}"
+# Bid button line.
+bid_line = "&fBid at least &e{amount}"
+# Time left.
+time_left = "&7Ends in &f{time}"
+# Ended.
+ended = "&7Ended"
+# Ends at.
+ends_at = "&7Ends: &f{time}"
+# Listed at.
+listed_at = "&7Listed: &f{time}"
+# Category button.
+category = "&eCategory: &f{category}"
+# Category names.
+cat_all = "All"
+cat_blocks = "Blocks"
+cat_tools = "Tools and weapons"
+cat_armor = "Armor"
+cat_food = "Food"
+cat_other = "Other"
+# Sort names.
+sort_newest = "Newest"
+sort_ending = "Ending soon"
+sort_price_up = "Price ↑"
+sort_price_down = "Price ↓"
+# My listings button / title.
+my_listings = "My listings"
+# Collection box button / title.
+collection = "Collection box"
+# Collection box has things.
+collection_waiting = "&aThings are waiting for you"
+# Collection box empty.
+collection_empty = "&7Nothing waiting"
+# Bid screen title.
+bid_title = "Place a bid"
+# Listing gone.
+gone = "&cThis listing has ended"
+# Your bid.
+your_bid = "&fYour bid: &e{amount}"
+# +1 step.
+step_one = "&a+ {amount}"
+# +5 steps.
+step_five = "&a+ {amount}"
+# Type an amount.
+type_amount = "&eType an amount"
+# Reset bid.
+reset = "&eReset to the lowest bid"
+# Confirm bid.
+confirm_bid = "&a&lPlace bid"
+# Bid is held.
+bid_held = "&7Your money is held until you're outbid (then it's in your collection box) or you win."
+# Sell screen title.
+sell_title = "Sell an item"
+# Price label, buy now.
+price_each_label = "&6Price each"
+# Price label, auction.
+start_bid_label = "&6Starting bid"
+# Duration.
+duration = "&eLasts &f{hours}h"
+# Fee.
+fee = "&7Listing fee: &e{amount}"
+# Confirm listing.
+confirm_list = "&a&lList it"
+# My listings, none.
+no_listings = "&7You have no listings"
+# Status names.
+status_active = "&aActive"
+status_sold = "&6Sold"
+status_expired = "&7Expired"
+status_cancelled = "&7Cancelled"
+# Cancel button.
+cancel = "&cCancel listing"
+# Cancel hint.
+cancel_hint = "&7The item goes to your collection box."
+# Can't cancel.
+cancel_has_bids = "&cHas bids: can't be cancelled"
+# Click to take.
+click_take = "&8Click to take"
+# Take all.
+take_all = "&eTake everything"
+
+[menu]
+# Shop menu title. {name} is the shop name.
+shop_title = "{name}"
+# Auction house menu title.
+ah_title = "Auction House"
+# Previous page button.
+prev = "&ePrevious page"
+# Next page button.
+next = "&eNext page"
+# Page indicator.
+page = "&7Page {page} of {pages}"
+# Search button.
+search = "&eSearch"
+# Sort button.
+sort = "&eSort: &f{sort}"
+# Balance button.
+balance = "&7Balance: &e{balance}"
+# Close button.
+close = "&cClose"
+# Buy button.
+buy = "&a&lBuy"
+# Sell button.
+sell = "&6&lSell"
+# Bid button.
+bid = "&b&lBid"
+# Amount button.
+amount = "&fAmount: &e{count}"
+# Click hint on amount.
+click_change = "&8Click to change"
+# Click hint on buy or sell.
+click_confirm = "&8Click to confirm"
+# Opens the bid screen.
+opens_bid = "&8Opens the bid screen"
+# Stock column.
+stock = "&7Available: &f{count}"
+# Stock with a linked vault.
+restocks = "&8Restocks from vault"
+# Unlimited stock.
+unlimited = "&7Unlimited"
+# Wanted column on sell shops.
+wanted = "&7Shop accepts &f{count} &7more"
+# Price per item.
+price_each = "&7Each: &e{amount}"
+# Price for a full stack.
+price_stack = "&7Stack: &e{amount}"
+# Rank price note.
+rank_price = "&dYour rank price"
+# Balance now.
+balance_now = "&7Balance now: &e{balance}"
+# Balance after.
+balance_after = "&7After: &e{balance}"
+# Not enough money.
+not_enough = "&cNot enough money"
+# What you carry.
+you_carry = "&7You carry: &f{count}"
+# Shop owner line.
+owner = "&7Shop: &f{shop} &8- &7{owner}"
+# Row with no price yet (owner only).
+no_price = "&cNo price set"
+# Confirm screen title.
+confirm_title = "Are you sure?"
+# Confirm screen yes.
+yes = "&a&lYes"
+# Confirm screen no.
+no = "&c&lNo"
+# Anvil prompt for a price.
+enter_price = "Enter a price"
+# Anvil prompt for search.
+enter_search = "Search items"
+# Anvil prompt for a name.
+enter_name = "Shop name"
+
+[shop_menu]
+# No items for sale.
+empty = "&7Nothing for sale right now"
+# Sell row the shop can't take.
+not_buying = "&cNot buying right now"
+# Items per sale.
+per = "&7Sold in bundles of &f{count}"
+# Cost for the chosen amount.
+cost = "&7Cost: &e{amount}"
+# Money for the chosen amount.
+you_get = "&7You get: &e{amount}"
+# Buy button line.
+buy_line = "&fBuy {count}x {item}"
+# Sell button line.
+sell_line = "&fSell {count}x {item}"
+# Total.
+total = "&7Total: &e{amount}"
+# Clear search button.
+clear_search = "&cClear search: &f{text}"
+# Owner screen, buy shop, empty.
+owner_empty_buy = "&7Put items in the shop or its stock vault"
+# Owner screen, sell shop, empty.
+owner_empty_sell = "&7Hold an item and click the hopper to buy it"
+# Stock in shop and vault.
+in_shop = "&7In shop: &f{shop} &8| &7In vault: &f{vault}"
+# Restock threshold.
+restock_below = "&7Restocks below &f{count}"
+# Sold today.
+sold_today = "&7Traded today: &f{count}"
+# Daily limit.
+daily = "&7Max per player per day: &f{count}"
+# Edit button.
+edit = "&eEdit"
+# For sale on.
+on = "&aFor sale"
+# For sale off.
+off = "&7Not for sale"
+# Till empty.
+till_empty = "&7No money in the shop"
+# Click to collect.
+click_collect = "&8Click to collect"
+# Earnings button.
+earnings = "&6Earnings"
+# Click to add funds.
+click_funds = "&8Left-click to add money, right-click to take it out"
+# Funds button (sell shops).
+funds = "&6Money to buy with"
+# Add item button.
+add_item = "&eAdd items to buy"
+# Add item hint.
+add_item_hint = "&8or hold the item and click here"
+# Rename button.
+rename = "&eRename shop"
+# Open storage button.
+open_storage = "&eOpen storage"
+# Linked vault.
+vault_linked = "&7Stock vault at &f{pos}"
+# Anvil prompt for funds.
+enter_funds = "Amount to add"
+# Price button.
+price = "&6Price"
+# Offer button.
+offer = "&6Offer"
+# Bundle hint.
+per_hint = "&7How many items each sale gives"
+# Anvil prompt for bundle size.
+enter_per = "Items per sale"
+# Daily hint.
+daily_hint = "&70 = no limit"
+# Anvil prompt for daily limit.
+enter_daily = "Max per player per day"
+# Wanted hint.
+wanted_hint = "&7How many more the shop will buy"
+# Anvil prompt for wanted.
+enter_wanted = "How many to buy"
+# Back button.
+back = "&eBack"
+# Remove row button.
+remove_row = "&cStop buying this item"
+# Shop open (owner switch).
+shop_open = "&aShop: Open"
+# Shop closed (owner switch).
+shop_closed = "&cShop: Closed"
+# Open/closed hint.
+open_hint = "&7Shown on the sign above your shop. Closed shops don't trade."
+# Claim access on.
+claim_access_on = "&aCustomers: open to everyone"
+# Claim access off.
+claim_access_off = "&7Customers: claim rules apply"
+# Claim access hint.
+claim_access_hint = "&7On: anyone can use this shop inside your claim, with no claim warning. They can still only buy or sell, never open the container."
+
+[display]
+# Shop name line on the sign above a shop.
+name = "&f{shop}"
+# Buy shops (players buy here).
+for_sale = "&bFOR SALE"
+# Sell shops (players sell here).
+we_buy = "&6WE BUY"
+# Open.
+open = "&a● OPEN"
+# Closed by the owner.
+closed = "&c● CLOSED"
+# Buy shop with nothing in stock.
+sold_out = "&e● SOLD OUT"
+# Sell shop that can't buy anything right now.
+not_buying = "&e● NOT BUYING"
+
+[admin]
+# /economy reload.
+reloaded = "{prefix}&aMessages and currency values reloaded. Settings marked (restart) still need a restart."
+# /economy version.
+version = "{prefix}&7Elements: Economy &f{version} &8| &7Currency: &f{currency} &8| &7Storage: &f{storage}"
+# Storage convert started.
+convert_started = "{prefix}&7Copying data to {type}..."
+# Storage convert finished.
+convert_done = "{prefix}&aData copied to {type}. Set backend = \"{type}\" in storage.toml and restart."
+# Storage convert failed.
+convert_failed = "{prefix}&cCopy to {type} failed: {error}"
+# Already the active storage type.
+convert_same = "{prefix}&c{type} is already in use."
+# A convert is already running.
+convert_running = "{prefix}&cA copy is already running."
+# Unknown storage type.
+convert_unknown = "{prefix}&c{type} is not a storage type. Use one of: {types}."
+
+[migrate]
+# /economy migrate, list title.
+header = "{prefix}&7Balances found from other economy mods:"
+# One source.
+line = "&8 - &f{source} &8(&e/economy migrate {id}&8)"
+# One source already imported.
+line_done = "&8 - &f{source} &8(&e/economy migrate {id}&8) &7imported {when}"
+# Nothing found.
+none = "{prefix}&7No other economy data found."
+# Unknown source.
+unknown = "{prefix}&c{source} is not a source found on this server. Type &e/economy migrate &cto list them."
+# Reading failed.
+read_failed = "{prefix}&cCould not read the {source} data. Nothing was changed. See the server log."
+# The target currency has no rate.
+no_rate = "{prefix}&cNo rate for {currency}. Add it to rates in economy.toml."
+# Preview title.
+preview_header = "{prefix}&6Import from &f{source} &6into &f{currency}"
+# Preview counts.
+preview_counts = "&7 Players: &f{players} &8| &7Named accounts: &f{accounts} &8| &7Total: &e{total}"
+# Preview: a rate from economy.toml.
+preview_rate = "&7 Rate: &f{key} = {rate}"
+# Preview: no rate set, 1:1 used.
+preview_rate_default = "&7 Rate: &f{key} = {rate} &8(no line in rates, so 1:1)"
+# Preview: entries that couldn't be read.
+preview_skipped = "&7 Skipped (unreadable): &f{count}"
+# Preview: imported before.
+preview_already = "&e Already imported on {when}. Use &f/economy migrate {id} confirm again &eto add it a second time."
+# How to go ahead.
+preview_confirm = "&7Type &e/economy migrate {id} confirm &7within 2 minutes. Amounts are added to current balances."
+# No preview to confirm.
+nothing_pending = "{prefix}&cRun &e/economy migrate {id} &cfirst."
+# Imported before, no "again".
+already = "{prefix}&c{source} was already imported. Use &e/economy migrate {id} confirm again &cto add it a second time."
+# Finished.
+done = "{prefix}&aImported {count} balances from {source} ({total}). The original data was not changed."
+# Some couldn't be added.
+failed = "{prefix}&e{count} balances could not be added. See the transaction log."

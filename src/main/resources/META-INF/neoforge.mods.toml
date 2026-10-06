@@ -1,0 +1,43 @@
+modLoader = "javafml"
+loaderVersion = "${loader_version_range}"
+license = "${mod_license}"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "${mod_name}"
+authors = "${mod_authors}"
+description = '''${mod_description}'''
+
+[[dependencies.${mod_id}]]
+    modId = "neoforge"
+    type = "required"
+    versionRange = "${neo_version_range}"
+    ordering = "NONE"
+    side = "BOTH"
+
+[[dependencies.${mod_id}]]
+    modId = "minecraft"
+    type = "required"
+    versionRange = "${minecraft_version_range}"
+    ordering = "NONE"
+    side = "BOTH"
+
+# Bundled inside the jar.
+[[dependencies.${mod_id}]]
+    modId = "elements_vault"
+    type = "required"
+    versionRange = "${vault_version_range}"
+    ordering = "AFTER"
+    side = "SERVER"
+
+# Optional link only. Economy runs without Nexus, and Nexus runs without Economy.
+[[dependencies.${mod_id}]]
+    modId = "elements_nexus"
+    type = "optional"
+    versionRange = "[1.0.0,)"
+    ordering = "NONE"
+    side = "SERVER"
+
+[[mixins]]
+config = "elements_economy.mixins.json"
