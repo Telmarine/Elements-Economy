@@ -371,6 +371,20 @@ blacklist_removed = "{prefix}&7{item} can be listed again."
 blacklist_header = "{prefix}&7{count} item(s) can't be listed:"
 # Blacklist line.
 blacklist_line = "&8 - &f{item}"
+# Linked an NPC, villager or block to the auction house.
+linked = "{prefix}&7The auction house now opens from &f{target}&7."
+# Unlinked.
+unlinked = "{prefix}&7That no longer opens the auction house."
+# Nothing linked there.
+not_linked = "{prefix}&cThat isn't linked to the auction house."
+# Look at an NPC to link it.
+look_at_npc = "{prefix}&cLook at the NPC to link."
+# Look at a block to link it.
+look_at_block = "{prefix}&cLook at the block to link."
+# Already opens a server shop.
+link_taken = "{prefix}&cThat already opens the server shop &f{shop}&c. Unlink it there first."
+# Name shown over a villager made with /ah link villager.
+villager_name = "&6Auction House"
 
 [ah_menu]
 # Nothing listed.

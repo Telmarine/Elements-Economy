@@ -23,8 +23,9 @@ public class MysqlBackend extends SqlBackend {
         p.setProperty("password", StorageConfig.MYSQL_PASSWORD.get());
         p.setProperty("allowPublicKeyRetrieval", "true"); // needed for MySQL 8 default logins
         p.setProperty("connectTimeout", "5000");
-        // Use the driver directly. The usual DriverManager lookup does not see bundled drivers.
-        Connection c = new org.mariadb.jdbc.Driver().connect(url, p);
+        // Use the driver directly. The usual DriverManager lookup does not see drivers loaded this way.
+        Connection c = Drivers.load("org.mariadb.jdbc.Driver", "MariaDB",
+                "org.mariadb.jdbc:mariadb-java-client, e.g. mariadb-java-client-3.5.1.jar").connect(url, p);
         if (c == null) throw new SQLException("MySQL driver refused the connection");
         return c;
     }

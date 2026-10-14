@@ -5,6 +5,7 @@ Currency bridge for NeoForge 1.21.1 servers. Finds the server's currency and con
 - Server-side only. No client mod, no resource pack.
 - Bundles Elements: Vault (the shared economy API).
 - Runs on its own or next to Elements: Nexus.
+- Storage: JSON (default), YAML, SQLite or MySQL. SQLite and MySQL need their driver jar in `elements_economy/drivers` (not included).
 
 ## Entering prices
 Prices and amounts are typed as one number in the **smallest coin** of the server's currency, as set in `config/elements_economy/currency_values.toml`. The menus then show the price in coins.

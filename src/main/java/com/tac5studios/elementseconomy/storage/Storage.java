@@ -70,7 +70,7 @@ public final class Storage {
         try {
             backend = create(wanted, folder);
             backend.open();
-        } catch (Exception | LinkageError ex) { // LinkageError = a bundled driver failed to load
+        } catch (Exception | LinkageError ex) { // LinkageError = a driver jar failed to load
             // Never fall back to an empty store: every player would look new and get the starting balance again,
             // and anything saved there would split the economy in two. Stop and let the owner fix the storage.
             ElementsEconomy.LOGGER.error("[Economy] Storage '{}' could not start. The server will not start without it, "

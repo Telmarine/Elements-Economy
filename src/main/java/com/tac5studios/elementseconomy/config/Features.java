@@ -48,7 +48,7 @@ public final class Features {
     // Auction house
     public static final BooleanValue AUCTION, AH_OPEN, AH_SELL, AH_BUY_NOW, AH_BIDS, AH_CANCEL, AH_COLLECT, AH_SEARCH,
             AH_CATEGORIES, AH_MY_LISTINGS, AH_SALE_ALERTS, AH_SALES_TAX, AH_RANK_LIMITS,
-            AH_ADMIN_REMOVE, AH_BLACKLIST;
+            AH_ADMIN_REMOVE, AH_BLACKLIST, AH_LINKS;
 
     // Server shops (staff only)
     public static final BooleanValue SERVER_SHOPS, SS_CREATE, SS_EDIT, SS_DELETE, SS_OPEN_COMMAND, SS_NPC_HOOK,
@@ -191,6 +191,7 @@ public final class Features {
         AH_RANK_LIMITS = sw(b, "rank_limits", true, "Limit how many listings each rank can have.");
         AH_ADMIN_REMOVE = sw(b, "admin_remove", true, "Staff can remove any listing. (restart)");
         AH_BLACKLIST = sw(b, "blacklist", true, "Block certain items from being listed.");
+        AH_LINKS = sw(b, "links", true, "Staff can link an NPC, a villager or a block that opens the auction house. (restart)");
         b.pop();
 
         b.comment("Server shops. Staff only. Players can never make or edit these.").push("server_shops");

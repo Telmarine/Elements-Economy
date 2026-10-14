@@ -21,7 +21,7 @@ Same storage system as Elements: Nexus, with its own config, folder and table. T
 - Files save through a temp file and a move, so a crash never leaves half a file.
 - A broken file is copied to `<name>.json.broken-<time>` and that collection starts empty. A collection that fails to load is never saved that run, so stored data isn't overwritten.
 - `/economy storage convert <type>` copies everything to another backend while the server runs. Change `backend` and restart to use it. Anything that changes before the restart is copied again when the server stops.
-- Drivers (sqlite-jdbc, mariadb client, snakeyaml) are bundled with jarJar, same version ranges as Nexus, so only one copy loads when both mods are installed.
+- snakeyaml is bundled with jarJar (same range as Nexus, so only one copy loads when both mods are installed). The SQLite and MySQL drivers are not bundled: put `sqlite-jdbc` (org.xerial) or `mariadb-java-client` (org.mariadb.jdbc) in `<server>/elements_economy/drivers`. A driver another mod already provides is used first. Without one, the server stops with an error naming the missing jar.
 
 ## Money safety
 - Amounts are saved as **text** (`"125000"`), in the currency's smallest unit. No decimals, no rounding, no size limit (Aiycoin reaches 10^12+). Matches Elements: Vault `Money(BigInteger)`.
@@ -54,6 +54,7 @@ Same storage system as Elements: Nexus, with its own config, folder and table. T
 | server_shops | shop id | `name`, `type`, `opener` (command / npc / villager / block + target), `rows[]`, `stock_limits`, `rank_prices` |
 | listings | listing id | `seller`, `item`, `qty`, `currency`, `buy_now`, `start_bid`, `bids[]` (`bidder`, `amount`, `time`), `created`, `ends` |
 | collect | player UUID | `items[]`, `money[]` (`currency`, `amount`) waiting from won, expired or cancelled auctions |
+| ah_links | link target (`entity|<uuid>` or `block|<dimension>|<position>`) | `kind` (`npc`, `villager` or `block`) |
 | daily | shop id | `day`, `{ row key: count }`; resets when `day` changes |
 | bridged | `modid:shop id` | owner answers and last-known price item for other mods' shops |
 

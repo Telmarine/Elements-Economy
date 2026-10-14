@@ -9,10 +9,16 @@ import com.tac5studios.elementseconomy.config.AuctionConfig;
 import com.tac5studios.elementseconomy.config.Features;
 import com.tac5studios.elementseconomy.messages.Msg;
 import com.tac5studios.elementseconomy.perms.Perm;
+import com.tac5studios.elementseconomy.servershop.ServerShopCommands;
+import com.tac5studios.elementseconomy.servershop.ServerShops;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -26,8 +32,10 @@ import java.util.List;
 /**
  * /ah · /ah sell · /ah collect · /ah listings · /ah remove <id> (staff)
  * /ah blacklist add|remove|list (admin, uses the item in hand)
+ * /ah link npc|villager|block · /ah unlink (admin, uses what you look at)
  */
 @EventBusSubscriber(modid = ElementsEconomy.MOD_ID, value = Dist.DEDICATED_SERVER)
+@SuppressWarnings("resource") // levels belong to the server and are never closed here
 public final class AhCommands {
 
     private AhCommands() {}
@@ -55,6 +63,13 @@ public final class AhCommands {
                     .then(Commands.literal("add").executes(c -> blacklist(c, true)))
                     .then(Commands.literal("remove").executes(c -> blacklist(c, false)))
                     .then(Commands.literal("list").executes(AhCommands::blacklistList)));
+        }
+        if (Perm.enabled(Perm.AH_LINK)) {
+            ah.then(Commands.literal("link").requires(s -> Perm.has(s, Perm.AH_LINK))
+                    .then(Commands.literal("npc").executes(c -> link(c, AhLinks.NPC)))
+                    .then(Commands.literal("villager").executes(c -> link(c, AhLinks.VILLAGER)))
+                    .then(Commands.literal("block").executes(c -> link(c, AhLinks.BLOCK))));
+            ah.then(Commands.literal("unlink").requires(s -> Perm.has(s, Perm.AH_LINK)).executes(AhCommands::unlink));
         }
         d.register(ah);
     }
@@ -125,12 +140,88 @@ public final class AhCommands {
         }
         String id = BuiltInRegistries.ITEM.getKey(hand.getItem()).toString();
         List<String> list = new ArrayList<>(AuctionConfig.BLACKLIST.get());
-        boolean changed = add ? !list.contains(id) && list.add(id) : list.remove(id);
+        boolean changed;
+        if (add) {
+            changed = !list.contains(id);
+            if (changed) list.add(id);
+        } else {
+            changed = list.remove(id);
+        }
         if (changed) {
             AuctionConfig.BLACKLIST.set(list);
             AuctionConfig.BLACKLIST.save();
         }
         Msg.send(p, add ? "ah.blacklist_added" : "ah.blacklist_removed", "item", id);
+        return 1;
+    }
+
+    private static int link(CommandContext<CommandSourceStack> c, String kind) {
+        ServerPlayer p = player(c);
+        if (p == null) return 0;
+        String key;
+        String target;
+        switch (kind) {
+            case AhLinks.NPC -> {
+                Entity e = ServerShopCommands.lookEntity(p);
+                if (e == null) {
+                    Msg.fail(c.getSource(), "ah.look_at_npc");
+                    return 0;
+                }
+                key = ServerShops.entityKey(e.getUUID());
+                target = e.getName().getString();
+            }
+            case AhLinks.VILLAGER -> {
+                Villager v = EntityType.VILLAGER.create(p.serverLevel());
+                if (v == null) return 0;
+                v.moveTo(p.getX(), p.getY(), p.getZ(), p.getYRot(), 0f);
+                v.setYHeadRot(p.getYRot());
+                v.setNoAi(true);
+                v.setInvulnerable(true);
+                v.setSilent(true);
+                v.setPersistenceRequired();
+                v.setCustomName(Msg.text("ah.villager_name"));
+                v.setCustomNameVisible(true);
+                v.addTag(AhLinks.VILLAGER_TAG);
+                p.serverLevel().addFreshEntity(v);
+                key = ServerShops.entityKey(v.getUUID());
+                target = "villager";
+            }
+            default -> {
+                BlockPos pos = ServerShopCommands.lookBlock(p);
+                if (pos == null) {
+                    Msg.fail(c.getSource(), "ah.look_at_block");
+                    return 0;
+                }
+                key = ServerShops.blockKey(p.level().dimension(), pos);
+                target = p.level().getBlockState(pos).getBlock().getName().getString();
+            }
+        }
+        var shop = ServerShops.byLink(key);
+        if (shop != null) {
+            Msg.fail(c.getSource(), "ah.link_taken", "shop", shop.name);
+            return 0;
+        }
+        AhLinks.link(key, kind);
+        Msg.sendLogged(c.getSource(), "ah.linked", "target", target);
+        return 1;
+    }
+
+    private static int unlink(CommandContext<CommandSourceStack> c) {
+        ServerPlayer p = player(c);
+        if (p == null) return 0;
+        Entity e = ServerShopCommands.lookEntity(p);
+        String key = e == null ? null : ServerShops.entityKey(e.getUUID());
+        if (key == null || !AhLinks.unlink(key)) {
+            e = null;
+            BlockPos pos = ServerShopCommands.lookBlock(p);
+            key = pos == null ? null : ServerShops.blockKey(p.level().dimension(), pos);
+            if (key == null || !AhLinks.unlink(key)) {
+                Msg.fail(c.getSource(), "ah.not_linked");
+                return 0;
+            }
+        }
+        if (e != null && e.getTags().contains(AhLinks.VILLAGER_TAG)) e.discard();
+        Msg.sendLogged(c.getSource(), "ah.unlinked");
         return 1;
     }
 

@@ -21,13 +21,13 @@ import java.util.function.BooleanSupplier;
 
 /**
  * Every Elements: Economy permission node, and the one place that checks them.
- *
+ * <p>
  * Nodes go through the NeoForge PermissionAPI, so they work with:
  *  - Elements: Nexus ranks (permissionHandler = "elements_nexus:permissions"),
  *  - any other permission mod (LuckPerms, FTB Ranks ...),
  *  - or plain OP levels when nothing else is installed.
  * Economy never needs Nexus for this.
- *
+ * <p>
  * A node whose feature switch is off is not registered at all.
  */
 @EventBusSubscriber(modid = ElementsEconomy.MOD_ID, value = Dist.DEDICATED_SERVER)
@@ -118,6 +118,8 @@ public final class Perm {
     public static final String AH_REMOVE = node("ah.remove", Who.STAFF, Features.AUCTION, Features.AH_ADMIN_REMOVE);
     /** Edit the list of items that can't be sold. */
     public static final String AH_BLACKLIST = node("ah.blacklist", Who.ADMIN, Features.AUCTION, Features.AH_BLACKLIST);
+    /** Link or unlink an NPC, villager or block that opens the auction house. */
+    public static final String AH_LINK = node("ah.link", Who.ADMIN, Features.AUCTION, Features.AH_LINKS);
 
     // ---------- admin ----------
     public static final String ADMIN_RELOAD = node("admin.reload", Who.ADMIN, Features.ADMIN, Features.ADMIN_RELOAD);
@@ -210,8 +212,7 @@ public final class Perm {
         PermissionNode<Integer> n = LIMITS.get(node);
         if (n == null || !LIMIT_GATES.get(node).getAsBoolean()) return -1;
         try {
-            Integer v = PermissionAPI.getPermission(player, n);
-            return v == null ? -1 : v;
+            return PermissionAPI.getPermission(player, n);
         } catch (RuntimeException ex) {
             return -1;
         }

@@ -52,6 +52,7 @@
 | economy.ah.nolimit | OP 2+ | auction_house.enabled, auction_house.rank_limits | No limit on how many listings you have. |
 | economy.ah.remove | OP 2+ | auction_house.enabled, auction_house.admin_remove | Remove anyone's listing. |
 | economy.ah.blacklist | OP 3+ | auction_house.enabled, auction_house.blacklist | Edit the list of items that can't be sold. |
+| economy.ah.link | OP 3+ | auction_house.enabled, auction_house.links | Link or unlink an NPC, villager or block that opens the auction house. |
 | economy.admin.reload | OP 3+ | admin.enabled, admin.reload |  |
 | economy.admin.version | OP 2+ | admin.enabled, admin.version |  |
 | economy.admin.storage | OP 3+ | admin.enabled, admin.storage_convert |  |

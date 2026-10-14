@@ -33,6 +33,9 @@ public final class Collections {
     /** Items and money waiting to be collected from the auction house. Key: player UUID. */
     public static final String COLLECT = "collect";
 
+    /** NPCs, villagers and blocks that open the auction house. Key: link target (same keys as server shop links). Value: kind. */
+    public static final String AH_LINKS = "ah_links";
+
     /** Daily sale counters for shop limits. Key: shop id. Value: { item key: count }, reset each day. */
     public static final String DAILY = "daily";
 

@@ -42,6 +42,7 @@ import java.util.UUID;
  * Players can never create, own or edit a server shop.
  */
 @EventBusSubscriber(modid = ElementsEconomy.MOD_ID, value = Dist.DEDICATED_SERVER)
+@SuppressWarnings("resource") // levels belong to the server and are never closed here
 public final class ServerShopCommands {
 
     /** Tag on villagers made for server shops. */
@@ -115,7 +116,7 @@ public final class ServerShopCommands {
 
     /** The entity the player is looking at (not a player), or null. */
     @Nullable
-    static Entity lookEntity(ServerPlayer p) {
+    public static Entity lookEntity(ServerPlayer p) {
         double reach = p.entityInteractionRange();
         Vec3 eye = p.getEyePosition();
         Vec3 look = p.getViewVector(1f);
@@ -127,7 +128,7 @@ public final class ServerShopCommands {
     }
 
     @Nullable
-    static BlockPos lookBlock(ServerPlayer p) {
+    public static BlockPos lookBlock(ServerPlayer p) {
         HitResult hit = p.pick(p.blockInteractionRange(), 0f, false);
         return hit instanceof BlockHitResult b && hit.getType() == HitResult.Type.BLOCK ? b.getBlockPos() : null;
     }
