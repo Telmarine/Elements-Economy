@@ -33,6 +33,8 @@ self = "{prefix}&7Balance: &e{balance}"
 other = "{prefix}&7{player}'s balance: &e{balance}"
 # The active currency mod has no balance for this player yet.
 none = "{prefix}&7No balance yet."
+# The bank (digital money from /exchange), shown under /bal when coins are the main currency.
+bank = "{prefix}&7Bank: &e{balance}"
 
 [pay]
 # Sent to the payer.
@@ -86,15 +88,23 @@ not_supported = "{prefix}&cThe active currency doesn't allow that change."
 
 [exchange]
 # Coins turned into digital money.
-deposited = "{prefix}&7Deposited &e{coins} &7for &e{amount}&7."
+deposited = "{prefix}&7Deposited &e{coins} &7into your bank."
 # Digital money turned into coins.
-withdrew = "{prefix}&7Withdrew &e{amount} &7as &e{coins}&7."
+withdrew = "{prefix}&7Withdrew &e{coins} &7from your bank."
 # No coins to deposit.
 no_coins = "{prefix}&cYou have no coins to deposit."
 # Not enough room for the coins.
 no_room = "{prefix}&cNot enough inventory space. Coins that didn't fit were dropped at your feet."
 # Left over that can't be made with the coins available.
-remainder = "{prefix}&7{amount} could not be paid out in coins and stays in your balance."
+remainder = "{prefix}&7{amount} could not be paid out in coins and stays in your bank."
+# Trying to deposit more coins than the player carries.
+not_enough_coins = "{prefix}&cYou only carry &e{coins}&c."
+# The amount is worth less than the smallest coin or digital unit.
+too_small = "{prefix}&cThat amount is too small to exchange."
+# No coin currency is installed, so there is nothing to exchange.
+no_currency = "{prefix}&cThere are no coins to exchange on this server."
+# The coin name after the amount isn't one of the server's coins.
+unknown_coin = "{prefix}&c'{coin}' is not a coin here."
 
 [currency]
 # Logged and shown to admins when currency mods are found.

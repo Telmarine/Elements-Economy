@@ -1,6 +1,7 @@
 package com.tac5studios.elementseconomy.core;
 
 import com.tac5studios.elementseconomy.config.EconomyConfig;
+import com.tac5studios.elementseconomy.config.Features;
 import com.tac5studios.elementseconomy.currency.CurrencyDisplay;
 import com.tac5studios.elementsvault.Capability;
 import com.tac5studios.elementsvault.Currency;
@@ -61,6 +62,17 @@ public final class DigitalCurrency implements Currency {
 
     @Override
     public Component format(BigInteger amount) {
+        // With a coin mod installed, the bank is shown in coins (bank_as_coins).
+        if (Features.on(Features.CURRENCY_BANK_AS_COINS)) {
+            Economy e = Economy.get();
+            ItemCurrency coin = e == null ? null : e.bankCoins();
+            if (coin != null) {
+                Optional<Long> v = e.digitalAsCoins(amount);
+                if (v.isPresent() && CurrencyDisplay.remainder(coin.namespace(), v.get()) == 0) {
+                    return CurrencyDisplay.format(coin.namespace(), v.get());
+                }
+            }
+        }
         int d = decimals();
         boolean one = amount.equals(BigInteger.TEN.pow(d));
         String name = one ? EconomyConfig.DIGITAL_NAME.get() : EconomyConfig.DIGITAL_PLURAL.get();

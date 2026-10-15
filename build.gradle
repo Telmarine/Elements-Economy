@@ -19,10 +19,8 @@ repositories {
 dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
 
-    // Elements: Vault, bundled inside the jar so Economy runs on its own.
-    // If a stand-alone Vault jar is also installed, NeoForge loads the newer one only.
+    // Elements: Vault is its own mod. Servers install the Vault jar next to Economy (required in neoforge.mods.toml).
     implementation "com.tac5studios:elements_vault:${vault_version}"
-    jarJar("com.tac5studios:elements_vault:${vault_version_range}") { version { prefer vault_version } }
 
     // YAML storage library, bundled inside the mod jar (jar-in-jar).
     // SQLite and MySQL drivers are not bundled: servers that use those backends
@@ -37,7 +35,7 @@ tasks.withType(Jar).configureEach {
     exclude 'net/impactdev/**', 'net/kyori/**', 'com/epherical/**'
 }
 
-// The full jar (with Vault and the YAML library) is the main output: elements_economy-<version>.jar
+// The full jar (with the YAML library) is the main output: elements_economy-<version>.jar
 tasks.named('jar') { archiveClassifier = 'slim' }
 tasks.named('jarJar') { archiveClassifier = '' }
 

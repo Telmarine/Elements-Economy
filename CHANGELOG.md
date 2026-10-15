@@ -1,5 +1,21 @@
 # Elements: Economy changelog
 
+## 1.0.2
+
+### Changed
+- **Elements: Vault is no longer inside the Economy jar.** Install the Elements: Vault jar next to Economy (1.0.0 or newer); the server won't start Economy without it.
+- **Create hooks only load when Create is installed.** Servers without Create never touch Create's classes.
+
+### New
+- **Bank shown in coins.** When a coin mod is found, digital money (the bank) is shown as coins everywhere, e.g. "177 Gold Coin, 14 Silver Coin, 11 Bronze Coin", including the transaction log. Switch: `bank_as_coins` under `[currency]` in features.toml (on by default).
+
+### Fixed
+- **`/exchange` was missing.** `/exchange deposit [amount]` turns the coins you carry into digital money (no amount = all of them) and `/exchange withdraw <amount>` turns digital money back into coins. It works whether coins or digital money is the main currency, as long as a coin mod is installed. The rate comes from `rates` in economy.toml; with no line for the coin, one of the smallest coin is worth one digital unit. Add a coin name after the amount to count in that coin: `/exchange deposit 30 gold`, `/exchange withdraw 5 silver` (tab-completes; withdrawals pay out in the fewest coins). When coins are the main currency, `/bal` also shows a "Bank:" line. Switches: `exchange`, `deposit` and `withdraw` under `[currency]` in features.toml. Permissions: `economy.exchange.deposit` and `economy.exchange.withdraw` (everyone).
+
+### Upgrading
+- Add the Elements: Vault jar to the mods folder.
+- `messages.toml` isn't rewritten on update. To get the new bank wording, change `deposited`, `withdrew` and `remainder` under `[exchange]`, or delete those lines to use the new defaults.
+
 ## 1.0.1
 
 ### New

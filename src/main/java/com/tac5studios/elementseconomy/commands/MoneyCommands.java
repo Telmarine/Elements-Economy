@@ -172,6 +172,11 @@ public final class MoneyCommands {
         for (Currency cur : e.activeCurrencies()) {
             Msg.send(c.getSource(), "balance.self", "balance", fmt(e, e.balance(p.getUUID(), cur)));
         }
+        // The bank: digital money from /exchange, when coins are the main currency.
+        if (Features.on(Features.CURRENCY_EXCHANGE) && !e.activeCurrencies().contains(e.digitalCurrency())) {
+            Money banked = e.balance(p.getUUID(), e.digitalCurrency());
+            if (banked.amount().signum() > 0) Msg.send(c.getSource(), "balance.bank", "balance", fmt(e, banked));
+        }
         return 1;
     }
 

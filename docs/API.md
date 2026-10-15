@@ -36,7 +36,7 @@ Conclusions:
 
 ## Layout
 - **Elements: Vault** — stand-alone project `TAC5 Studios/elements-vault`, mod ID `elements_vault`, package `com.tac5studios.elementsvault`. Its own jar, its own version. In-house only.
-- Elements: Economy bundles it (jarJar) so Economy works on its own, and other TAC5 mods (e.g. Nexus) can depend on the stand-alone Vault jar without needing Economy.
+- Elements: Vault is a separate jar. Elements: Economy requires it, and other mods can depend on Vault without needing Economy.
 ```
 elements_vault.jar         (package com.tac5studios.elementsvault)
   EconomyAPI          entry point: EconomyAPI.get() → Optional<EconomyService>
@@ -79,7 +79,7 @@ public interface CurrencyBackend {
     BigInteger balance(UUID owner);
     Result withdraw(UUID owner, BigInteger amount, Cause cause);
     Result deposit(UUID owner, BigInteger amount, Cause cause);
-    default Result set(UUID owner, BigInteger amount, Cause cause) { ... }
+    default Result set(UUID owner, BigInteger amount, Cause cause) { /* withdraw or deposit the difference */ }
 }
 ```
 - Built in: digital + all 47 detected mods (API, player-data, file, items — research Parts 1–2).

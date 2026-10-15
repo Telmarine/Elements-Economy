@@ -24,7 +24,7 @@ public final class Features {
     // Currency
     public static final BooleanValue CURRENCY_DIGITAL, CURRENCY_AUTO_DETECT, CURRENCY_USE_DETECTED, CURRENCY_MULTIPLE,
             CURRENCY_COUNT_HOLDERS, CURRENCY_EXCHANGE, CURRENCY_DEPOSIT, CURRENCY_WITHDRAW, CURRENCY_PAY_WITH_COINS,
-            CURRENCY_DETECT_LOG;
+            CURRENCY_DETECT_LOG, CURRENCY_BANK_AS_COINS;
 
     // Currency switch-over
     public static final BooleanValue SWITCH_OVER, SWITCH_PREVIEW, SWITCH_BACKUP, SWITCH_BALANCES, SWITCH_SHOPS,
@@ -117,6 +117,7 @@ public final class Features {
         CURRENCY_EXCHANGE = sw(b, "exchange", true, "Players can swap coins and digital money. (restart)");
         CURRENCY_DEPOSIT = sw(b, "deposit", true, "Players can turn coins into digital money. (restart)");
         CURRENCY_WITHDRAW = sw(b, "withdraw", true, "Players can turn digital money into coins. (restart)");
+        CURRENCY_BANK_AS_COINS = sw(b, "bank_as_coins", true, "When a coin mod is found, show digital money (the bank) as coins, e.g. 3 Gold Coin, 14 Silver Coin. Also used in the transaction log.");
         CURRENCY_PAY_WITH_COINS = sw(b, "pay_with_coins", false, "Shops take and give coins straight from the inventory.");
         CURRENCY_DETECT_LOG = sw(b, "detect_log", true, "Log which currency mods were found.");
         b.pop();

@@ -43,7 +43,8 @@ Elements: Economy is a **currency bridge**. It detects and identifies the curren
      - **Player data** — read the balance field stored on the player (M Economy, Kuro's, Mezzo's, Better Economy) and Saro's Essentials' world file.
      - **Items** — count coins in the inventory and inside holders (wallets, bags, coin boxes) using `config/elements_economy/currency_values.toml`.
    - Two coin modes, each switchable:
-     - **Exchange** (`currency.exchange`, `deposit`, `withdraw`) — players turn coins into digital money and back.
+     - **Exchange** (`currency.exchange`, `deposit`, `withdraw`) — players turn coins into digital money (the bank) and back. An optional coin name after the amount counts in that coin (`30 gold`); withdrawals pay out in the fewest coins. Works whether coins or digital money is primary, as long as a coin mod is installed.
+     - **Bank as coins** (`currency.bank_as_coins`) — with a coin mod installed, digital money is shown as coins everywhere (`/bal` "Bank:" line, messages, transaction log).
      - **Pay with coins** (`currency.pay_with_coins`, default off) — shops take and give coins straight from the inventory.
    - Item values are owner-set. 0 = not counted. Example: Aiycoin's own chain is 50:1; a server that trades coins at 100:1 sets that ladder here.
    - Offline changes only for mods that support them (Saro's, Miguel, Bubustein, NEC2, Avecoins, EconomyCraft). Others change only while the player is online.
@@ -100,7 +101,7 @@ Found shops are bridged (`overlap_guard.bridge_found_shops`, plus `shop_bridge.i
   - LOCKED: `/bal` shows the balance from the active currency (the detected currency mod, read through its adapter). Digital money's name, symbol and starting balance only apply when no currency mod is in use.
 - /economy shop create buy|sell <name> (server shops, admin)
 - /eco give|take|set|reset <player> <amount>
-- /exchange deposit [amount] · /exchange withdraw <amount>
+- `/exchange deposit [amount] [coin]` · `/exchange withdraw <amount> [coin]`
 - /shop create buy · /shop create sell · /shop rename <name> · /shop remove
 - /shop (server shops) · /ah (auction house)
 - /economy reload (messages.toml, currency_values.toml, currency list; .toml settings reload on save, "(restart)" ones need a restart) | version (version, primary currency, storage) | migrate [source] [confirm [again]] | storage convert <json|yaml|sqlite|mysql> (backup first, copy only; set the type in storage.toml and restart; the final data is copied again when the server stops). Done (commands/AdminCommands, migrate/).

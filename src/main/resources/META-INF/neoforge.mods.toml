@@ -23,7 +23,7 @@ description = '''${mod_description}'''
     ordering = "NONE"
     side = "BOTH"
 
-# Bundled inside the jar.
+# Separate jar: install Elements: Vault next to Economy.
 [[dependencies.${mod_id}]]
     modId = "elements_vault"
     type = "required"

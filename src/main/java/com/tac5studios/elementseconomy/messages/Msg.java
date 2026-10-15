@@ -19,7 +19,7 @@ import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 /**
  * Every player-facing line, read from config/elements_economy/messages.toml.
  *
- * Usage:  Msg.send(player, "pay.sent", "player", "Alex", "amount", "250 Coins");
+ * <p>Usage:  Msg.send(player, "pay.sent", "player", "Alex", "amount", "250 Coins");
  * Placeholders are given as name/value pairs and fill {name} in the text.
  * An empty message sends nothing. A missing key uses the built-in text from the jar.
  */
@@ -31,7 +31,7 @@ public final class Msg {
     private Msg() {}
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onAboutToStart(ServerAboutToStartEvent e) {
+    public static void onAboutToStart(ServerAboutToStartEvent ignored) {
         load();
     }
 
@@ -46,9 +46,28 @@ public final class Msg {
         if (s.isEmpty()) return s;
         s = s.replace("{prefix}", FILE.str("general.prefix", ""));
         for (int i = 0; i + 1 < pairs.length; i += 2) {
-            s = s.replace("{" + pairs[i] + "}", String.valueOf(pairs[i + 1]));
+            String tag = "{" + pairs[i] + "}";
+            String value = String.valueOf(pairs[i + 1]);
+            int at = s.indexOf(tag);
+            // Coin names carry their own colors (e.g. "177 Gold Coin, 14 Silver Coin"). Put the message's own color
+            // back after each name, so the next number doesn't pick up the previous coin's color.
+            if (at >= 0 && value.indexOf('§') >= 0) {
+                String base = lastColor(s.substring(0, at));
+                if (base != null) value = value.replace(", ", base + ", ");
+            }
+            s = s.replace(tag, value);
         }
         return s;
+    }
+
+    private static final java.util.regex.Pattern COLOR = java.util.regex.Pattern.compile("&#[0-9A-Fa-f]{6}|&[0-9a-fA-F]");
+
+    /** The last color code in the text, or null. */
+    private static String lastColor(String text) {
+        java.util.regex.Matcher m = COLOR.matcher(text);
+        String last = null;
+        while (m.find()) last = m.group();
+        return last;
     }
 
     /** The message as colored text. Empty component when the message is off. */

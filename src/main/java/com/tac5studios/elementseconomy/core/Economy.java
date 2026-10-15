@@ -38,7 +38,6 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +50,7 @@ import java.util.function.Function;
  * Commands, shops and the auction house call this directly. Other mods reach it through
  * Elements: Vault ({@link EconomyAPI}), wrapped in {@link ApiFacade} so the api.* switches apply.
  *
- * Starts after storage and currency detection, stops before storage closes.
+ * <p>Starts after storage and currency detection, stops before storage closes.
  */
 @EventBusSubscriber(modid = ElementsEconomy.MOD_ID, value = Dist.DEDICATED_SERVER)
 public final class Economy implements EconomyService {
@@ -78,7 +77,7 @@ public final class Economy implements EconomyService {
     // ---------- server events ----------
 
     @SubscribeEvent(priority = EventPriority.LOW) // after storage (HIGHEST) and detection (NORMAL)
-    public static void onAboutToStart(ServerAboutToStartEvent e) {
+    public static void onAboutToStart(ServerAboutToStartEvent ignored) {
         if (!Features.on(Features.ECONOMY)) {
             ElementsEconomy.LOGGER.info("[Economy] Economy is turned off in features.toml.");
             return;
@@ -249,6 +248,33 @@ public final class Economy implements EconomyService {
 
     public DigitalCurrency digitalCurrency() {
         return digitalCurrency;
+    }
+
+    /** The coins the bank (digital money) is counted in: the primary currency when it's coins, otherwise the first coin mod found. Null without a coin mod. */
+    public ItemCurrency bankCoins() {
+        if (primary instanceof ItemCurrency ic) return ic;
+        for (CurrencyBackend b : backends.values()) {
+            if (b.currency() instanceof ItemCurrency ic) return ic;
+        }
+        return null;
+    }
+
+    /** What one smallest coin is worth in whole digital money: its rates line, or one smallest digital unit. */
+    public BigDecimal coinRate(ItemCurrency coin) {
+        return rateFor(coin.id().toString()).orElse(BigDecimal.ONE.movePointLeft(digitalCurrency.decimals()));
+    }
+
+    /** A digital amount as the bank coins' value, when it converts to a whole number. */
+    public Optional<Long> digitalAsCoins(BigInteger digitalAmount) {
+        ItemCurrency coin = bankCoins();
+        if (coin == null) return Optional.empty();
+        BigDecimal v = new BigDecimal(digitalAmount).movePointLeft(digitalCurrency.decimals()).divide(coinRate(coin), 10, RoundingMode.HALF_UP).stripTrailingZeros();
+        if (v.scale() > 0) return Optional.empty();
+        try {
+            return Optional.of(v.longValueExact());
+        } catch (ArithmeticException ex) {
+            return Optional.empty();
+        }
     }
 
     private CurrencyBackend backend(Currency c) {
