@@ -59,12 +59,12 @@ public final class TransactionLog {
      * 14:02:11 PAY Steve -> Alex 250 Coins (elements_economy:digital) "for the iron"
      *
      * @param kind   short tag: PAY, GIVE, TAKE, SET, RESET, SHOP_BUY, SHOP_SELL, AH_SALE, AH_TAX, EXCHANGE, SWITCH ...
-     * @param detail the rest of the line, already readable
+     * @param detail the rest of the line, already readable (color codes from coin names are removed)
      */
     public static void add(String kind, String detail) {
         ExecutorService w = writer;
         if (w == null) return;
-        String line = LocalTime.now().format(CLOCK) + " " + kind + " " + detail.replace('\n', ' ') + System.lineSeparator();
+        String line = LocalTime.now().format(CLOCK) + " " + kind + " " + detail.replace('\n', ' ').replaceAll("§.", "") + System.lineSeparator();
         LocalDate day = LocalDate.now();
         w.submit(() -> {
             Path file = folder().resolve("transactions-" + day + ".log");
