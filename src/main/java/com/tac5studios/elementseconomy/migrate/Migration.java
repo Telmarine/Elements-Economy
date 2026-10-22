@@ -44,7 +44,7 @@ import java.util.Optional;
  * /economy migrate <source>           preview (target currency, rates, how many balances, total)
  * /economy migrate <source> confirm   import (adds to current balances); "confirm again" to import a source twice
  *
- * Originals are never changed. A backup is taken first. Balances go into the primary currency when it can be
+ * <p>Originals are never changed. A backup is taken first. Balances go into the primary currency when it can be
  * changed for offline players, otherwise into digital money.
  */
 @EventBusSubscriber(modid = ElementsEconomy.MOD_ID, value = Dist.DEDICATED_SERVER)
@@ -108,18 +108,18 @@ public final class Migration {
         return p == null ? "console" : p.getUUID().toString();
     }
 
-    private static boolean ready(CommandSourceStack src) {
+    private static boolean unavailable(CommandSourceStack src) {
         if (Economy.get() == null || !Economy.running() || !Storage.running()) {
             Msg.fail(src, "general.currency_unavailable");
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     // ---------- commands ----------
 
     private static int list(CommandContext<CommandSourceStack> c) {
-        if (!ready(c.getSource())) return 0;
+        if (unavailable(c.getSource())) return 0;
         List<MigrationSource> all = sources(c.getSource().getServer());
         if (all.isEmpty()) {
             Msg.send(c.getSource(), "migrate.none");
@@ -137,7 +137,7 @@ public final class Migration {
 
     private static int preview(CommandContext<CommandSourceStack> c, String id) {
         CommandSourceStack src = c.getSource();
-        if (!ready(src)) return 0;
+        if (unavailable(src)) return 0;
         Optional<MigrationSource> s = source(src.getServer(), id);
         if (s.isEmpty()) {
             Msg.fail(src, "migrate.unknown", "source", id);
@@ -154,19 +154,16 @@ public final class Migration {
             Msg.fail(src, "migrate.read_failed", "source", s.get().name());
             return 0;
         }
-        Optional<BigDecimal> tr = e.rate(target);
-        if (tr.isEmpty()) {
-            Msg.fail(src, "migrate.no_rate", "currency", target.name().getString());
-            return 0;
-        }
+        Optional<BigDecimal> tr = Optional.of(targetRate(s.get(), target));
         long players = r.entries().stream().filter(x -> x.player() != null).count();
         long accounts = r.entries().size() - players;
         BigInteger total = BigInteger.ZERO;
         for (MigrationSource.Entry x : r.entries()) total = total.add(units(x.worth(), tr.get()));
         Msg.send(src, "migrate.preview_header", "source", s.get().name(), "currency", target.name().getString());
         Msg.send(src, "migrate.preview_counts", "players", players, "accounts", accounts, "total", e.format(target.of(total)));
-        r.rates().forEach((key, rate) -> Msg.send(src, rate.configured() ? "migrate.preview_rate" : "migrate.preview_rate_default",
-                "key", key, "rate", rate.value().stripTrailingZeros().toPlainString()));
+        boolean fromRates = !s.get().physical() && Economy.isPhysical(target) && Economy.rateFor(target.id().toString()).isPresent();
+        if (fromRates) Msg.send(src, "migrate.preview_rate", "rate", tr.get().stripTrailingZeros().toPlainString());
+        else Msg.send(src, "migrate.preview_rate_default");
         if (r.skipped() > 0) Msg.send(src, "migrate.preview_skipped", "count", r.skipped());
         JsonObject done = done();
         if (done.has(s.get().id())) {
@@ -179,7 +176,7 @@ public final class Migration {
 
     private static int confirm(CommandContext<CommandSourceStack> c, String id, boolean again) {
         CommandSourceStack src = c.getSource();
-        if (!ready(src)) return 0;
+        if (unavailable(src)) return 0;
         Optional<MigrationSource> s = source(src.getServer(), id);
         if (s.isEmpty()) {
             Msg.fail(src, "migrate.unknown", "source", id);
@@ -197,6 +194,17 @@ public final class Migration {
 
     // ---------- import ----------
 
+    /**
+     * Worth of one smallest unit of the target currency. 1:1, except when digital balances are imported into a
+     * physical currency: then a rates line for the target in economy.toml is used if there is one.
+     */
+    private static BigDecimal targetRate(MigrationSource s, Currency target) {
+        if (!s.physical() && Economy.isPhysical(target)) {
+            return Economy.rateFor(target.id().toString()).orElse(Economy.parity(target));
+        }
+        return Economy.parity(target);
+    }
+
     private static BigInteger units(BigDecimal worth, BigDecimal targetRate) {
         return worth.divide(targetRate, 0, RoundingMode.DOWN).toBigInteger();
     }
@@ -209,11 +217,7 @@ public final class Migration {
             return 0;
         }
         Currency target = target(e);
-        Optional<BigDecimal> tr = e.rate(target);
-        if (tr.isEmpty()) {
-            Msg.fail(src, "migrate.no_rate", "currency", target.name().getString());
-            return 0;
-        }
+        Optional<BigDecimal> tr = Optional.of(targetRate(s, target));
         MigrationSource.Result r;
         try {
             r = s.read(src.getServer());

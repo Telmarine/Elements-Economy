@@ -4,6 +4,8 @@
 #  {prefix} is replaced with general.prefix.
 #  Leave a message empty ("") to send nothing.
 #  Missing lines use the built-in text, so updates never break this file.
+#  After an update, lines you never edited get the new built-in text and
+#  lines you edited are kept (switch: admin.messages_auto_update in features.toml).
 # ============================================================
 
 [general]
@@ -33,7 +35,7 @@ self = "{prefix}&7Balance: &e{balance}"
 other = "{prefix}&7{player}'s balance: &e{balance}"
 # The active currency mod has no balance for this player yet.
 none = "{prefix}&7No balance yet."
-# The bank (digital money from /exchange), shown under /bal when coins are the main currency.
+# The bank (digital money from /exchange), shown under /bal when an item currency is the main currency.
 bank = "{prefix}&7Bank: &e{balance}"
 
 [pay]
@@ -87,52 +89,77 @@ reset = "{prefix}&7Reset &f{player}&7's balance to &e{balance}&7."
 not_supported = "{prefix}&cThe active currency doesn't allow that change."
 
 [exchange]
-# Coins turned into digital money.
+# Currency items turned into digital money. {coins} = the items, e.g. "3 Block of Emerald, 5 Emerald".
 deposited = "{prefix}&7Deposited &e{coins} &7into your bank."
-# Digital money turned into coins.
+# Digital money turned into currency items.
 withdrew = "{prefix}&7Withdrew &e{coins} &7from your bank."
-# No coins to deposit.
-no_coins = "{prefix}&cYou have no coins to deposit."
-# Not enough room for the coins.
-no_room = "{prefix}&cNot enough inventory space. Coins that didn't fit were dropped at your feet."
-# Left over that can't be made with the coins available.
-remainder = "{prefix}&7{amount} could not be paid out in coins and stays in your bank."
-# Trying to deposit more coins than the player carries.
+# Nothing to deposit.
+no_coins = "{prefix}&cYou have nothing to deposit."
+# Not enough room for the items.
+no_room = "{prefix}&cNot enough inventory space. Items that didn't fit were dropped at your feet."
+# Left over that can't be paid out with the currency items available.
+remainder = "{prefix}&7{amount} could not be paid out and stays in your bank."
+# Trying to deposit more than the player carries.
 not_enough_coins = "{prefix}&cYou only carry &e{coins}&c."
-# The amount is worth less than the smallest coin or digital unit.
+# The amount is worth less than the smallest currency item or digital unit.
 too_small = "{prefix}&cThat amount is too small to exchange."
-# No coin currency is installed, so there is nothing to exchange.
-no_currency = "{prefix}&cThere are no coins to exchange on this server."
-# The coin name after the amount isn't one of the server's coins.
-unknown_coin = "{prefix}&c'{coin}' is not a coin here."
+# The server has no item currency, so there is nothing to exchange.
+no_currency = "{prefix}&cThis server has no currency items to exchange."
+# The name after the amount isn't one of the server's currency items.
+unknown_coin = "{prefix}&c'{coin}' is not a currency item here."
 
 [currency]
 # Logged and shown to admins when currency mods are found.
 detected = "{prefix}&7Currency found: &f{currency} &8({mod})"
 # No currency mod found, digital money is used.
 digital = "{prefix}&7No currency mod found. Using digital money."
-# Admin warning when a vanilla item is listed as currency.
-vanilla_ask = "{prefix}&e{item} &7is listed as currency in currency_values.toml. Vanilla items are not money by default. Are you sure?"
-# Label of the confirm button.
-confirm_button = "&a&l[Confirm]"
-# Hover text of the confirm button.
-confirm_hover = "Count {item} as currency."
-# Label of the ignore button.
-ignore_button = "&c&l[Ignore]"
-# Hover text of the ignore button.
-ignore_hover = "Keep {item} as a normal item."
-# The vanilla item now counts as currency.
-confirmed = "{prefix}&a{item} now counts as currency."
-# The vanilla item will not count as currency.
-ignored = "{prefix}&7{item} will not count as currency."
-# /economy currency pending, nothing waiting.
-pending_none = "{prefix}&7No vanilla items are waiting for confirmation."
-# /economy currency pending, title.
-pending_header = "{prefix}&7{count} vanilla item(s) waiting:"
-# /economy currency pending, one row.
-pending_line = "&8 - &f{item}"
-# Confirm or ignore on an item that isn't waiting.
-not_pending = "{prefix}&c{item} is not waiting for confirmation."
+# Asked in game when no currency mod is found and nobody picked the server's currency yet.
+setup_ask = "{prefix}&eNo currency mod was found. What should this server use as money?"
+# Button: digital money.
+setup_digital_button = "&a&l[Digital money]"
+setup_digital_hover = "Money is kept as a number. Name it under [digital] in economy.toml."
+# Button: vanilla items.
+setup_vanilla_button = "&b&l[Vanilla items]"
+setup_vanilla_hover = "Pick the vanilla items that count as money, like emeralds."
+# Digital money picked.
+setup_digital_done = "{prefix}&aThis server now uses digital money."
+# Start of picking vanilla items.
+setup_vanilla_start = "{prefix}&7Add each vanilla item that counts as money and what one of it is worth in your smallest unit. Click an example, or click &a[+ Add item]&7 and type the item ID and value."
+# Example buttons. {item} = item name, {value} = example value.
+setup_example = "&e[{item} = {value}]"
+setup_example_hover = "Put this example in the chat box."
+# The list being picked.
+setup_draft_header = "{prefix}&7Vanilla items so far:"
+setup_draft_line = "&8 - &f{name} &8({item}) &7= &e{value}"
+setup_draft_empty = "{prefix}&7No items added yet."
+# Confirm and cancel buttons.
+setup_confirm_button = "&a&l[Confirm]"
+setup_confirm_hover = "Use these items as the server's money."
+setup_cancel_button = "&c&l[Cancel]"
+setup_cancel_hover = "Stop without changing anything."
+# Vanilla items picked. {count} = how many.
+setup_vanilla_done = "{prefix}&a{count} vanilla item(s) now count as money. They are the server's main currency."
+setup_cancelled = "{prefix}&7Currency setup stopped. Nothing was changed."
+setup_no_draft = "{prefix}&cStart with &f/economy currency setup vanilla&c first."
+setup_needs_items = "{prefix}&cAdd at least one item first."
+setup_not_vanilla = "{prefix}&c{item} is not a vanilla item."
+setup_unknown_item = "{prefix}&c{item} is not an item."
+# Shared buttons.
+add_button = "&a[+ Add item]"
+add_hover = "Type a vanilla item ID and its value."
+remove_button = "&c[Remove]"
+remove_hover = "Stop counting {item} as money."
+change_button = "&e[Change]"
+change_hover = "Type a new value for {item}."
+setup_change_button = "&7[Change currency]"
+setup_change_hover = "Pick digital money or vanilla items again."
+# /economy currency values.
+values_header = "{prefix}&7Currency values (in your smallest unit):"
+values_line = "&8 - &f{name} &8({item}) &7= &e{value}"
+values_empty = "{prefix}&7No currency items. This server uses digital money."
+value_set = "{prefix}&a{item} is now worth {value}."
+value_removed = "{prefix}&7{item} no longer counts as money."
+value_not_listed = "{prefix}&c{item} isn't a currency item here. Vanilla items can only be added when the server uses vanilla items (/economy currency setup)."
 
 [switch]
 # Preview title.
@@ -145,7 +172,7 @@ preview_balances = "&7 Balances: &f{now} &7now, &f{later} &7at next login"
 preview_shops = "&7 Shop prices: &f{prices} &8| &7Server shop prices: &f{server} &8| &7Shop tills: &f{tills}"
 # Preview: auction house.
 preview_listings = "&7 Auction listings: &f{listings} &8| &7Collection boxes: &f{boxes}"
-# Preview: coin-priced shops left alone (item prices never become digital).
+# Preview: item-priced shops left alone (item prices never become digital).
 preview_skipped = "&7 Left alone (item prices never become digital): &f{skipped}"
 # Preview: another mod's shops.
 preview_bridge = "&7 {bridge}: &f{changed} &7changed, &f{skipped} &7left alone"
@@ -163,8 +190,6 @@ nothing_pending = "{prefix}&cRun &e/economy currency switch <currency> &cfirst."
 unknown = "{prefix}&c{currency} is not an installed currency."
 # Already the server currency.
 same = "{prefix}&c{currency} is already the server currency."
-# No rate between the two currencies.
-no_rate = "{prefix}&cNo exchange rate between {from} and {to}. Add both to rates in economy.toml."
 # Another mod stopped the switch.
 cancelled = "{prefix}&cAnother mod stopped the switch. Nothing was changed."
 # Told to a player when their balance converts.
@@ -207,8 +232,8 @@ out_of_stock = "{prefix}&cThis shop is out of {item}."
 not_buying = "{prefix}&cThis shop is not buying right now."
 # The owner changed the price or amount while the customer was confirming.
 price_changed = "{prefix}&cThe price just changed. Take another look and try again."
-# Staff tried to collect a coin till while the owner is offline.
-owner_offline = "{prefix}&cThe owner of {shop} must be online to collect coins."
+# Staff tried to collect an item-currency till while the owner is offline.
+owner_offline = "{prefix}&cThe owner of {shop} must be online to collect the till."
 # Not enough room for the items.
 no_room = "{prefix}&cNot enough inventory space."
 # Daily limit reached for that item.
@@ -682,6 +707,8 @@ closed = "&c● CLOSED"
 sold_out = "&e● SOLD OUT"
 # Sell shop that can't buy anything right now.
 not_buying = "&e● NOT BUYING"
+# Added after an amount when part of it is worth less than the smallest currency item. {amount} = that part.
+leftover = " (+{amount} too small to pay out)"
 
 [admin]
 # /economy reload.
@@ -714,16 +741,15 @@ none = "{prefix}&7No other economy data found."
 unknown = "{prefix}&c{source} is not a source found on this server. Type &e/economy migrate &cto list them."
 # Reading failed.
 read_failed = "{prefix}&cCould not read the {source} data. Nothing was changed. See the server log."
-# The target currency has no rate.
-no_rate = "{prefix}&cNo rate for {currency}. Add it to rates in economy.toml."
 # Preview title.
 preview_header = "{prefix}&6Import from &f{source} &6into &f{currency}"
 # Preview counts.
 preview_counts = "&7 Players: &f{players} &8| &7Named accounts: &f{accounts} &8| &7Total: &e{total}"
-# Preview: a rate from economy.toml.
-preview_rate = "&7 Rate: &f{key} = {rate}"
-# Preview: no rate set, 1:1 used.
-preview_rate_default = "&7 Rate: &f{key} = {rate} &8(no line in rates, so 1:1)"
+# Preview: digital balances going into a physical currency, using the rates line in economy.toml.
+# {rate} = what one smallest currency item is worth in digital money.
+preview_rate = "&7 Rate: &f1 item = {rate} &8(rates in economy.toml)"
+# Preview: everything is moved 1:1.
+preview_rate_default = "&7 Rate: &f1:1"
 # Preview: entries that couldn't be read.
 preview_skipped = "&7 Skipped (unreadable): &f{count}"
 # Preview: imported before.

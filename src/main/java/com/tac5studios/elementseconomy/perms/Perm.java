@@ -69,8 +69,8 @@ public final class Perm {
     // ---------- currency ----------
     public static final String EXCHANGE_DEPOSIT = node("exchange.deposit", Who.PLAYER, Features.CURRENCY_EXCHANGE, Features.CURRENCY_DEPOSIT);
     public static final String EXCHANGE_WITHDRAW = node("exchange.withdraw", Who.PLAYER, Features.CURRENCY_EXCHANGE, Features.CURRENCY_WITHDRAW);
-    /** /economy currency pending | confirm | ignore (vanilla item "Are you sure?"). */
-    public static final String CURRENCY_CONFIRM = node("currency.confirm", Who.ADMIN, Features.ADMIN, Features.ADMIN_CURRENCY_CONFIRM);
+    /** /economy currency setup | values | value | remove: pick digital money or vanilla items, change item values. */
+    public static final String CURRENCY_SETUP = node("currency.setup", Who.ADMIN, Features.ADMIN, Features.ADMIN_CURRENCY_SETUP);
     /** /economy currency switch <new> and switch confirm. */
     public static final String CURRENCY_SWITCH = node("currency.switch", Who.ADMIN,
             () -> Features.on(Features.ADMIN, Features.ADMIN_CURRENCY_SWITCH) && Features.on(Features.SWITCH_OVER));

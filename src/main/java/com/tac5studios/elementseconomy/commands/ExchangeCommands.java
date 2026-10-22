@@ -21,6 +21,8 @@ import com.tac5studios.elementsvault.Result;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
@@ -39,15 +41,14 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * /exchange deposit [amount] [coin] and /exchange withdraw <amount> [coin]: swap the coins a player carries for digital
- * money (the bank) and back.
+ * /exchange deposit [amount] [item] and /exchange withdraw <amount> [item]: swap the currency items a player carries for
+ * digital money (the bank) and back.
  *
- * <p>Works while a coin currency is the primary currency (digital money is always kept next to it), and while digital
- * money is primary with a coin mod installed. The rate comes from economy.toml rates ("aiycoin:coins=1"); with no line,
- * one of the smallest coin is worth one of the smallest digital unit.
+ * <p>Works while an item currency is the primary currency (digital money is always kept next to it), and while digital
+ * money is primary with an item currency installed. Always 1:1: one smallest currency item = one digital money.
  *
- * <p>The optional coin name multiplies the amount by that coin's value: "30 gold" = 30 Gold Coins' worth. Without it the
- * amount is in the smallest coin. Withdrawals pay out in the fewest coins.
+ * <p>The optional item multiplies the amount by that item's value from currency_values.toml. Without it the amount is in
+ * the smallest item. Withdrawals pay out in the fewest items.
  */
 @EventBusSubscriber(modid = ElementsEconomy.MOD_ID, value = Dist.DEDICATED_SERVER)
 public final class ExchangeCommands {
@@ -57,13 +58,13 @@ public final class ExchangeCommands {
     private static final SuggestionProvider<CommandSourceStack> COINS = (c, b) -> {
         Economy e = Economy.get();
         ItemCurrency coin = e == null ? null : e.bankCoins();
-        List<String> names = new ArrayList<>();
+        List<ResourceLocation> ids = new ArrayList<>();
         if (coin != null) {
             for (Map.Entry<Item, Long> d : CurrencyDetector.denominations(coin.namespace())) {
-                if (d.getValue() > 0) names.add(shortName(d.getKey()));
+                if (d.getValue() > 0) ids.add(BuiltInRegistries.ITEM.getKey(d.getKey()));
             }
         }
-        return SharedSuggestionProvider.suggest(names, b);
+        return SharedSuggestionProvider.suggestResource(ids, b);
     };
 
     @SubscribeEvent
@@ -83,25 +84,25 @@ public final class ExchangeCommands {
                     .executes(c -> deposit(c, null, null))
                     .then(Commands.argument("amount", StringArgumentType.word())
                             .executes(c -> deposit(c, StringArgumentType.getString(c, "amount"), null))
-                            .then(Commands.argument("coin", StringArgumentType.word()).suggests(COINS)
+                            .then(Commands.argument("item", ResourceLocationArgument.id()).suggests(COINS)
                                     .executes(c -> deposit(c, StringArgumentType.getString(c, "amount"),
-                                            StringArgumentType.getString(c, "coin"))))));
+                                            ResourceLocationArgument.getId(c, "item"))))));
         }
         if (withdraw) {
             ex.then(Commands.literal("withdraw")
                     .requires(s -> Perm.has(s, Perm.EXCHANGE_WITHDRAW))
                     .then(Commands.argument("amount", StringArgumentType.word())
                             .executes(c -> withdraw(c, StringArgumentType.getString(c, "amount"), null))
-                            .then(Commands.argument("coin", StringArgumentType.word()).suggests(COINS)
+                            .then(Commands.argument("item", ResourceLocationArgument.id()).suggests(COINS)
                                     .executes(c -> withdraw(c, StringArgumentType.getString(c, "amount"),
-                                            StringArgumentType.getString(c, "coin"))))));
+                                            ResourceLocationArgument.getId(c, "item"))))));
         }
         d.register(ex);
     }
 
     // ---------- /exchange deposit ----------
 
-    private static int deposit(CommandContext<CommandSourceStack> c, String input, String coinName) {
+    private static int deposit(CommandContext<CommandSourceStack> c, String input, ResourceLocation coinName) {
         CommandSourceStack s = c.getSource();
         Setup x = setup(s);
         if (x == null) return 0;
@@ -148,7 +149,7 @@ public final class ExchangeCommands {
 
     // ---------- /exchange withdraw ----------
 
-    private static int withdraw(CommandContext<CommandSourceStack> c, String input, String coinName) {
+    private static int withdraw(CommandContext<CommandSourceStack> c, String input, ResourceLocation coinName) {
         CommandSourceStack s = c.getSource();
         Setup x = setup(s);
         if (x == null) return 0;
@@ -212,7 +213,7 @@ public final class ExchangeCommands {
      * Typed amount in the smallest coin, or "count" x the named coin's value. Null (and a message sent) when either part
      * is wrong.
      */
-    private static BigInteger coinAmount(CommandSourceStack s, Setup x, String input, String coinName) {
+    private static BigInteger coinAmount(CommandSourceStack s, Setup x, String input, ResourceLocation coinName) {
         if (coinName == null) {
             Money m = x.e.parse(x.coin, input).orElse(null);
             if (m == null || m.amount().signum() <= 0) {
@@ -239,15 +240,20 @@ public final class ExchangeCommands {
         return count.multiply(BigInteger.valueOf(value));
     }
 
-    /** Value of the coin called {@code name} ("gold", "gold_coin" or the item id), or null. */
-    private static Long coinValue(ItemCurrency coin, String name) {
-        String n = name.toLowerCase(Locale.ROOT);
+    /**
+     * Value of the currency item called {@code name}, or null. The full item ID ("minecraft:emerald") always works.
+     * Without a mod id ("emerald_block") the name is matched against the item path and the item's display name.
+     */
+    private static Long coinValue(ItemCurrency coin, ResourceLocation name) {
+        String typedPath = name.getPath().toLowerCase(Locale.ROOT);
+        boolean shortForm = name.getNamespace().equals("minecraft") || name.getNamespace().equals(coin.namespace());
         for (Map.Entry<Item, Long> d : CurrencyDetector.denominations(coin.namespace())) {
             if (d.getValue() <= 0) continue;
-            String id = BuiltInRegistries.ITEM.getKey(d.getKey()).toString();
-            String path = BuiltInRegistries.ITEM.getKey(d.getKey()).getPath();
+            ResourceLocation id = BuiltInRegistries.ITEM.getKey(d.getKey());
+            if (id.equals(name)) return d.getValue();
+            if (!shortForm) continue;
             String shortName = shortName(d.getKey());
-            if (n.equals(shortName) || n.equals(shortName + "_coin") || n.equals(id) || n.equals(path)) return d.getValue();
+            if (typedPath.equals(id.getPath()) || typedPath.equals(shortName) || typedPath.equals(shortName + "_coin")) return d.getValue();
         }
         return null;
     }

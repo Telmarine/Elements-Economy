@@ -19,6 +19,7 @@ import com.tac5studios.elementsvault.event.BalanceChangedEvent;
 import com.tac5studios.elementsvault.event.RegisterCurrencyBackendsEvent;
 import com.tac5studios.elementsvault.event.TransactionEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -151,7 +152,7 @@ public final class Economy implements EconomyService {
     }
 
     private static String displayName(String ns) {
-        if ("minecraft".equals(ns)) return "Confirmed vanilla items";
+        if ("minecraft".equals(ns)) return "Vanilla items";
         for (KnownCurrency k : CurrencyDetector.found()) {
             if (k.modId().equals(ns)) return k.name();
         }
@@ -163,7 +164,18 @@ public final class Economy implements EconomyService {
         if (!wanted.isEmpty() && !"auto".equalsIgnoreCase(wanted)) {
             ResourceLocation id = ResourceLocation.tryParse(wanted);
             if (id != null && backends.containsKey(id)) return backends.get(id).currency();
+            // A currency item's full ID (e.g. "minecraft:emerald") picks the item currency it belongs to.
+            if (id != null && BuiltInRegistries.ITEM.containsKey(id) && CurrencyDetector.isMoney(BuiltInRegistries.ITEM.get(id))) {
+                ResourceLocation cid = ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "coins");
+                if (backends.containsKey(cid)) return backends.get(cid).currency();
+            }
             ElementsEconomy.LOGGER.warn("[Economy] primary_currency '{}' is not installed. Using auto.", wanted);
+        }
+        // Vanilla items picked with /economy currency setup are the main currency.
+        if (com.tac5studios.elementseconomy.currency.CurrencyDetector.VANILLA_ITEMS.equals(
+                com.tac5studios.elementseconomy.currency.CurrencyDetector.setupChoice())) {
+            ResourceLocation vanilla = ResourceLocation.fromNamespaceAndPath("minecraft", "coins");
+            if (backends.containsKey(vanilla)) return backends.get(vanilla).currency();
         }
         Currency detected = firstDetected();
         if (Features.on(Features.CURRENCY_USE_DETECTED) && detected == null) {
@@ -194,11 +206,13 @@ public final class Economy implements EconomyService {
                 if (coinMod || external) return b.currency();
             }
         }
-        // Currencies added by other mods through Elements: Vault.
+        // Currencies added by other mods through Elements: Vault. Confirmed vanilla items are never picked here:
+        // they only become the main currency when primary_currency names one of them.
         java.util.Set<String> known = new java.util.HashSet<>();
         for (KnownCurrency k : CurrencyDetector.found()) known.add(k.modId());
         for (CurrencyBackend b : backends.values()) {
-            if (b != digital && !known.contains(b.currency().sourceMod())) return b.currency();
+            if (b == digital || b.currency() instanceof ItemCurrency) continue;
+            if (!known.contains(b.currency().sourceMod())) return b.currency();
         }
         return null;
     }
@@ -259,9 +273,9 @@ public final class Economy implements EconomyService {
         return null;
     }
 
-    /** What one smallest coin is worth in whole digital money: its rates line, or one smallest digital unit. */
+    /** What one smallest currency item is worth in whole digital money. Always 1:1. */
     public BigDecimal coinRate(ItemCurrency coin) {
-        return rateFor(coin.id().toString()).orElse(BigDecimal.ONE.movePointLeft(digitalCurrency.decimals()));
+        return parity(coin);
     }
 
     /** A digital amount as the bank coins' value, when it converts to a whole number. */
@@ -450,7 +464,7 @@ public final class Economy implements EconomyService {
     private void log(TransactionEvent.Type type, UUID player, UUID other, Money money, Cause cause) {
         StringBuilder line = new StringBuilder(Accounts.name(player));
         if (other != null) line.append(" -> ").append(Accounts.name(other));
-        line.append(' ').append(format(money)).append(" (").append(money.currency().id()).append(')');
+        line.append(' ').append(format(money)).append(" (").append(money.currency().name().getString()).append(')');
         line.append(" [").append(cause.type().name().toLowerCase());
         if (!cause.source().isEmpty()) line.append(' ').append(cause.source());
         if (cause.actor() != null && !cause.actor().equals(player)) line.append(" by ").append(Accounts.name(cause.actor()));
@@ -474,13 +488,34 @@ public final class Economy implements EconomyService {
 
     // ---------- converting ----------
 
-    /** What one smallest unit of a currency is worth in whole digital money. Empty when no rate is set. */
+    /**
+     * What one smallest unit of a currency is worth in whole digital money. Money is 1:1 everywhere: one whole unit of
+     * any currency (1 Emerald, 1 dollar, 1 coin) is worth one whole unit of any other. Never empty.
+     */
     public Optional<BigDecimal> rate(Currency c) {
-        if (c.equals(digitalCurrency)) return Optional.of(BigDecimal.ONE.movePointLeft(digitalCurrency.decimals()));
-        return rateFor(c.id().toString());
+        return Optional.of(parity(c));
     }
 
-    /** The rates line for an id (a currency, or a migration source such as impactor:dollars). */
+    /** One whole unit = one whole digital money; a currency with decimals counts per smallest unit (0.01 for 2). */
+    public static BigDecimal parity(Currency c) {
+        return BigDecimal.ONE.movePointLeft(Math.max(0, c.decimals()));
+    }
+
+    /** True for currencies players hold as items (a money mod's items or confirmed vanilla items). */
+    public static boolean isPhysical(Currency c) {
+        return c instanceof ItemCurrency;
+    }
+
+    /**
+     * Worth of one smallest unit of {@code to} when converting from {@code from}. The one case that can use a rates line
+     * is moving from digital money (built-in or another mod's balance) to a physical currency; everything else is 1:1.
+     */
+    public BigDecimal targetRate(Currency from, Currency to) {
+        if (!isPhysical(from) && isPhysical(to)) return rateFor(to.id().toString()).orElse(parity(to));
+        return parity(to);
+    }
+
+    /** The rates line for a currency id, or empty. Only used by {@link #targetRate}. */
     public static Optional<BigDecimal> rateFor(String id) {
         for (String line : EconomyConfig.RATES.get()) {
             int eq = line.indexOf('=');

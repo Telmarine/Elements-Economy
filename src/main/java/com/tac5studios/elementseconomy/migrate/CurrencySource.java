@@ -60,6 +60,11 @@ final class CurrencySource implements MigrationSource {
     }
 
     @Override
+    public boolean physical() {
+        return Economy.isPhysical(currency);
+    }
+
+    @Override
     public boolean present(MinecraftServer server) {
         return true;
     }
@@ -68,10 +73,9 @@ final class CurrencySource implements MigrationSource {
     public Result read(MinecraftServer server) {
         Economy e = Economy.get();
         Map<String, Rate> rates = MigrationSource.rates();
-        // Rates for currencies are per smallest unit; with no line, one whole unit = one digital coin.
+        // 1:1: one whole unit of the source currency = one whole digital money.
         String key = currency.id().toString();
-        Rate rate = Economy.rateFor(key).map(r -> new Rate(r, true))
-                .orElse(new Rate(BigDecimal.ONE.movePointLeft(currency.decimals()), false));
+        Rate rate = new Rate(Economy.parity(currency), false);
         rates.put(key, rate);
 
         Set<UUID> players = new LinkedHashSet<>();

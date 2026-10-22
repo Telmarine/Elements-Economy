@@ -28,13 +28,16 @@ public final class EconomyConfig {
 
     public static final ModConfigSpec.ConfigValue<String> SDM_CURRENCY;
 
+    public static final ModConfigSpec.IntValue BACKUPS_KEPT;
+
     static {
         ModConfigSpec.Builder b = new ModConfigSpec.Builder();
 
         PRIMARY = b.comment(
                 "The currency shops and /bal use.",
                 "auto = the found currency mod when currency.use_detected is on, otherwise digital money.",
-                "Or a currency id, e.g. \"elements_economy:digital\" or \"aiycoin:coins\"."
+                "Or pick one: \"elements_economy:digital\" for digital money, or the full ID of one of the",
+                "currency items, e.g. \"minecraft:emerald\" to use the confirmed vanilla items."
         ).define("primary_currency", "auto");
 
         b.comment("Built-in digital money.").push("digital");
@@ -55,14 +58,20 @@ public final class EconomyConfig {
         b.pop();
 
         RATES = b.comment(
-                "Exchange rates, used by the currency switch-over and coin exchange.",
-                "Each line: currency id = what its smallest unit is worth in digital money.",
-                "Example: \"aiycoin:coins=1\" means one Stone Coin is worth 1 Coin.",
-                "A currency with no line has no rate and can't be converted."
+                "Money is 1:1 between currencies: 1 of any currency is worth 1 of any other.",
+                "The only exception: when the server moves from digital money to items players carry (vanilla items",
+                "or a money mod) with /economy currency switch or /economy migrate, you can set what one of the",
+                "smallest items is worth in the old digital money. One line per currency: \"<currency id>=<amount>\".",
+                "Press Tab on /economy currency switch to see the currency ids. No line = 1:1."
         ).defineListAllowEmpty("rates", List.of(), () -> "modid:coins=1", o -> o instanceof String s && s.contains("="));
 
         b.comment("Settings for currency mods that keep money in their own data.").push("currency_mods");
         SDM_CURRENCY = b.comment("SDM Economy currency to use.").define("sdm_currency", "basic_money");
+        b.pop();
+
+        b.comment("Config files Economy rewrites itself (messages.toml, currency_values.toml).").push("files");
+        BACKUPS_KEPT = b.comment("How many backups of each file to keep. The oldest are deleted. 0 = keep none.")
+                .defineInRange("backups_kept", 2, 0, 20);
         b.pop();
 
         SPEC = b.build();

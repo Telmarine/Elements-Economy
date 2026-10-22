@@ -21,9 +21,9 @@
 | economy.eco.take | OP 3+ | economy.enabled, economy.eco_take |  |
 | economy.eco.set | OP 3+ | economy.enabled, economy.eco_set |  |
 | economy.eco.reset | OP 3+ | economy.enabled, economy.eco_reset |  |
-| economy.exchange.deposit | Everyone | currency.exchange, currency.deposit | `/exchange deposit [amount] [coin]` |
-| economy.exchange.withdraw | Everyone | currency.exchange, currency.withdraw | `/exchange withdraw <amount> [coin]` |
-| economy.currency.confirm | OP 3+ | admin.enabled, admin.currency_confirm | /economy currency pending, confirm, ignore (vanilla item "Are you sure?"). |
+| economy.exchange.deposit | Everyone | currency.exchange, currency.deposit | `/exchange deposit [amount] [item]` |
+| economy.exchange.withdraw | Everyone | currency.exchange, currency.withdraw | `/exchange withdraw <amount> [item]` |
+| economy.currency.setup | OP 3+ | admin.enabled, admin.currency_setup | /economy currency setup (digital money or vanilla items), values, value, remove. |
 | economy.currency.switch | OP 3+ | admin.enabled, admin.currency_switch, switch_over.enabled | /economy currency switch <new> and switch confirm. |
 | economy.shop.create.buy | Everyone | player_shops.enabled, player_shops.create_buy |  |
 | economy.shop.create.sell | Everyone | player_shops.enabled, player_shops.create_sell |  |

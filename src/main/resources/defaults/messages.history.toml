@@ -1,0 +1,22 @@
+# Built-in messages.toml text from earlier versions. Economy uses it to tell which lines
+# a server never edited, so those lines can get the new built-in text. Not a config file.
+
+[exchange]
+deposited = ["{prefix}&7Deposited &e{coins} &7for &e{amount}&7."]
+withdrew = ["{prefix}&7Withdrew &e{amount} &7as &e{coins}&7."]
+no_coins = ["{prefix}&cYou have no coins to deposit."]
+no_room = ["{prefix}&cNot enough inventory space. Coins that didn't fit were dropped at your feet."]
+remainder = ["{prefix}&7{amount} could not be paid out in coins and stays in your balance.", "{prefix}&7{amount} could not be paid out in coins and stays in your bank."]
+no_currency = ["{prefix}&cThere are no coins to exchange on this server."]
+unknown_coin = ["{prefix}&c'{coin}' is not a coin here."]
+
+[admin]
+convert_done = ["{prefix}&aData copied to {type}. Set backend = \"{type}\" in storage.toml and restart."]
+
+[migrate]
+preview_rate = ["&7 Rate: &f{key} = {rate}"]
+preview_rate_default = ["&7 Rate: &f{key} = {rate} &8(no line in rates, so 1:1)"]
+
+[shop]
+owner_offline = ["{prefix}&cThe owner of {shop} must be online to collect coins."]
+

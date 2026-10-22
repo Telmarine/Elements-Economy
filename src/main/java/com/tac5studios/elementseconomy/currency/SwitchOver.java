@@ -68,11 +68,11 @@ import java.util.UUID;
  * The currency switch-over: /economy currency switch <new> shows a preview, /economy currency switch confirm
  * converts everything priced or held in the old primary currency, then makes the new one primary.
  *
- * Converted: player balances, player shop prices and tills, server shop prices (and rank prices),
+ * <p>Converted: player balances, player shop prices and tills, server shop prices (and rank prices),
  * active auction listings and bids, collection boxes, and other mods' shops through their bridges.
  * Item-priced shops only swap one coin currency for another; they never become digital.
  *
- * Balances that can't change right now (coins, or currencies that need the player online) convert at
+ * <p>Balances that can't change right now (coins, or currencies that need the player online) convert at
  * that player's next login, at the rate saved with the switch. Every switch is kept in meta "switches",
  * and each account remembers how many it has been through, so players who miss several switches
  * catch up in order.
@@ -146,14 +146,10 @@ public final class SwitchOver {
             Msg.fail(src, "switch.same", "currency", name(from));
             return 0;
         }
-        if (e.rate(from).isEmpty() || e.rate(to.get()).isEmpty()) {
-            Msg.fail(src, "switch.no_rate", "from", name(from), "to", name(to.get()));
-            return 0;
-        }
         if (!Features.on(Features.SWITCH_OVER, Features.SWITCH_PREVIEW)) {
             return run(src, from, to.get());
         }
-        Step step = new Step(from.id().toString(), to.get().id().toString(), e.rate(from).get(), e.rate(to.get()).get());
+        Step step = new Step(from.id().toString(), to.get().id().toString(), Economy.parity(from), e.targetRate(from, to.get()));
         Counts c = convert(from, to.get(), step, true);
         Msg.send(src, "switch.preview_header", "from", name(from), "to", name(to.get()));
         Msg.send(src, "switch.preview_rate", "example", example(e, from, to.get(), step));
@@ -193,12 +189,7 @@ public final class SwitchOver {
 
     private static int run(CommandSourceStack src, Currency from, Currency to) {
         Economy e = Economy.get();
-        Optional<BigDecimal> fr = e.rate(from), tr = e.rate(to);
-        if (fr.isEmpty() || tr.isEmpty()) {
-            Msg.fail(src, "switch.no_rate", "from", name(from), "to", name(to));
-            return 0;
-        }
-        Step step = new Step(from.id().toString(), to.id().toString(), fr.get(), tr.get());
+        Step step = new Step(from.id().toString(), to.id().toString(), Economy.parity(from), e.targetRate(from, to));
         CurrencyChange change = new CurrencyChange(from, to, Instant.now());
         boolean events = Features.on(Features.API, Features.API_EVENTS);
 

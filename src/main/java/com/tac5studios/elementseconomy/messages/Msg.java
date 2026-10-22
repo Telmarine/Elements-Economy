@@ -2,6 +2,7 @@ package com.tac5studios.elementseconomy.messages;
 
 import net.neoforged.api.distmarker.Dist;
 import com.tac5studios.elementseconomy.ElementsEconomy;
+import com.tac5studios.elementseconomy.config.Features;
 import com.tac5studios.elementseconomy.config.TomlFile;
 import com.tac5studios.elementseconomy.util.Text;
 import net.minecraft.ChatFormatting;
@@ -26,7 +27,8 @@ import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 @EventBusSubscriber(modid = ElementsEconomy.MOD_ID, value = Dist.DEDICATED_SERVER)
 public final class Msg {
 
-    private static final TomlFile FILE = new TomlFile("messages.toml");
+    private static final TomlFile FILE = new TomlFile("messages.toml",
+            () -> Features.SPEC.isLoaded() && Features.MESSAGES_AUTO_UPDATE.get());
 
     private Msg() {}
 
@@ -108,6 +110,17 @@ public final class Msg {
     public static MutableComponent button(String labelKey, String hoverKey, String command, Object... pairs) {
         return text(labelKey, pairs).withStyle(s -> s
                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command))
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                        text(hoverKey, pairs).withStyle(ChatFormatting.GRAY))));
+    }
+
+    /**
+     * A clickable chat button that puts a command in the chat box instead of running it, so the player can finish
+     * typing it (e.g. a value).
+     */
+    public static MutableComponent suggest(String labelKey, String hoverKey, String command, Object... pairs) {
+        return text(labelKey, pairs).withStyle(s -> s
+                .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command))
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                         text(hoverKey, pairs).withStyle(ChatFormatting.GRAY))));
     }

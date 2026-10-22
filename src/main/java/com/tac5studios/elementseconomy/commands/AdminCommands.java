@@ -84,7 +84,7 @@ public final class AdminCommands {
         if (e != null) e.reload();
         for (Shop s : Shops.all()) ShopDisplays.touch(s.id); // signs pick up new messages and prices
         MinecraftServer server = c.getSource().getServer();
-        if (!CurrencyDetector.pendingVanilla().isEmpty()) CurrencyDetector.askAllAdmins(server);
+        CurrencyDetector.askAllAdmins(server); // only asks while no currency is picked
         Msg.sendLogged(c.getSource(), "admin.reloaded");
         ElementsEconomy.LOGGER.info("[Economy] Reloaded messages and currency values.");
         return 1;

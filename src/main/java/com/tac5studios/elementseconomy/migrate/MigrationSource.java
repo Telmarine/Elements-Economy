@@ -1,6 +1,5 @@
 package com.tac5studios.elementseconomy.migrate;
 
-import com.tac5studios.elementseconomy.core.Economy;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.Nullable;
@@ -38,9 +37,14 @@ interface MigrationSource {
 
     record Rate(BigDecimal value, boolean configured) {}
 
-    /** Rate for a source currency key: the economy.toml line, or 1 (one stored unit = one digital coin). */
+    /** Rate for a source currency key: always 1:1 (one stored unit = one whole digital money). */
     static Rate rate(String key, Map<String, Rate> used) {
-        return used.computeIfAbsent(key, k -> Economy.rateFor(k).map(r -> new Rate(r, true)).orElse(new Rate(BigDecimal.ONE, false)));
+        return used.computeIfAbsent(key, k -> new Rate(BigDecimal.ONE, false));
+    }
+
+    /** True when the imported balances are physical currency items. Most sources are digital balances. */
+    default boolean physical() {
+        return false;
     }
 
     static Map<String, Rate> rates() {

@@ -79,8 +79,8 @@ public final class Features {
     public static final BooleanValue MIGRATION, MIGRATION_PREVIEW;
 
     // Admin
-    public static final BooleanValue ADMIN, ADMIN_RELOAD, ADMIN_VERSION, ADMIN_STORAGE_CONVERT, ADMIN_CURRENCY_CONFIRM,
-            ADMIN_CURRENCY_SWITCH;
+    public static final BooleanValue ADMIN, ADMIN_RELOAD, ADMIN_VERSION, ADMIN_STORAGE_CONVERT, ADMIN_CURRENCY_SETUP,
+            ADMIN_CURRENCY_SWITCH, MESSAGES_AUTO_UPDATE;
 
     static {
         ModConfigSpec.Builder b = new ModConfigSpec.Builder();
@@ -113,12 +113,12 @@ public final class Features {
         CURRENCY_AUTO_DETECT = sw(b, "auto_detect", true, "Find every supported currency mod at startup. One switch covers them all. (restart)");
         CURRENCY_USE_DETECTED = sw(b, "use_detected", true, "Use the found currency mod instead of digital money. Falls back to digital if its balances can't be read. (restart)");
         CURRENCY_MULTIPLE = sw(b, "multiple_currencies", false, "Shops may accept more than one currency at the same time.");
-        CURRENCY_COUNT_HOLDERS = sw(b, "count_holders", true, "Count coins kept inside wallets, bags and coin boxes.");
-        CURRENCY_EXCHANGE = sw(b, "exchange", true, "Players can swap coins and digital money. (restart)");
-        CURRENCY_DEPOSIT = sw(b, "deposit", true, "Players can turn coins into digital money. (restart)");
-        CURRENCY_WITHDRAW = sw(b, "withdraw", true, "Players can turn digital money into coins. (restart)");
-        CURRENCY_BANK_AS_COINS = sw(b, "bank_as_coins", true, "When a coin mod is found, show digital money (the bank) as coins, e.g. 3 Gold Coin, 14 Silver Coin. Also used in the transaction log.");
-        CURRENCY_PAY_WITH_COINS = sw(b, "pay_with_coins", false, "Shops take and give coins straight from the inventory.");
+        CURRENCY_COUNT_HOLDERS = sw(b, "count_holders", true, "Count currency items kept inside wallets, bags and coin boxes.");
+        CURRENCY_EXCHANGE = sw(b, "exchange", true, "Players can swap currency items and digital money with /exchange. (restart)");
+        CURRENCY_DEPOSIT = sw(b, "deposit", true, "Players can turn currency items into digital money. (restart)");
+        CURRENCY_WITHDRAW = sw(b, "withdraw", true, "Players can turn digital money into currency items. (restart)");
+        CURRENCY_BANK_AS_COINS = sw(b, "bank_as_coins", true, "When the server has an item currency (a coin mod or confirmed vanilla items), show digital money (the bank) in those items, e.g. 3 Block of Emerald, 5 Emerald. Also used in the transaction log. Off = always show the digital money name from economy.toml.");
+        CURRENCY_PAY_WITH_COINS = sw(b, "pay_with_coins", false, "Shops take and give currency items straight from the inventory.");
         CURRENCY_DETECT_LOG = sw(b, "detect_log", true, "Log which currency mods were found.");
         b.pop();
 
@@ -133,7 +133,7 @@ public final class Features {
 
         b.comment("Connect other mods' shops and auction houses to the server currency.").push("shop_bridge");
         SHOP_BRIDGE = sw(b, "enabled", true, "Turn the shop bridge on or off. (restart)");
-        BRIDGE_ITEM_PRICED = sw(b, "item_priced", true, "Bridge shops priced in mod coins. Vanilla-item prices are never touched.");
+        BRIDGE_ITEM_PRICED = sw(b, "item_priced", true, "Bridge shops priced in a currency mod's items. Vanilla-item prices are never touched.");
         BRIDGE_MONEY_PRICED = sw(b, "money_priced", true, "Bridge shops priced in their own money.");
         BRIDGE_CONVERT_ON_LOAD = sw(b, "convert_on_load", true, "Convert block shops when their chunk loads.");
         b.pop();
@@ -267,8 +267,9 @@ public final class Features {
         ADMIN_RELOAD = sw(b, "reload", true, "Reload config files with /economy reload. (restart)");
         ADMIN_VERSION = sw(b, "version", true, "Show the mod version with /economy version. (restart)");
         ADMIN_STORAGE_CONVERT = sw(b, "storage_convert", true, "Copy data to another storage type. (restart)");
-        ADMIN_CURRENCY_CONFIRM = sw(b, "currency_confirm", true, "Admins confirm or ignore vanilla items added as currency. (restart)");
+        ADMIN_CURRENCY_SETUP = sw(b, "currency_setup", true, "Admins pick digital money or vanilla items and change currency values in game with /economy currency setup and /economy currency values. (restart)");
         ADMIN_CURRENCY_SWITCH = sw(b, "currency_switch", true, "Admins change the server currency with /economy currency switch. (restart)");
+        MESSAGES_AUTO_UPDATE = sw(b, "messages_auto_update", true, "Keep messages.toml up to date. After an update, lines you never edited get the new built-in text and new lines are added. Lines you edited are kept. The old file is backed up first. Off = messages.toml is never rewritten.");
         b.pop();
 
         SPEC = b.build();

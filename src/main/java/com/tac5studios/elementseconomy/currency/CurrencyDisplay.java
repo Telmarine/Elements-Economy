@@ -1,5 +1,8 @@
 package com.tac5studios.elementseconomy.currency;
 
+import com.tac5studios.elementseconomy.config.EconomyConfig;
+import com.tac5studios.elementseconomy.core.DigitalCurrency;
+import com.tac5studios.elementseconomy.messages.Msg;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -8,7 +11,6 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemLore;
 
 import java.util.ArrayList;
@@ -20,7 +22,7 @@ import java.util.Map;
  * Item currencies use the coins and values from currency_values.toml (through {@link CurrencyDetector}),
  * so a change to that file, a newly detected mod, or a confirmed vanilla item shows up in every screen.
  *
- * Currency ids: {@link #DIGITAL} for built-in digital money, or an item-currency namespace such as "aiycoin".
+ * <p>Currency ids: {@link #DIGITAL} for built-in digital money, or an item-currency namespace such as "aiycoin".
  */
 public final class CurrencyDisplay {
 
@@ -29,21 +31,7 @@ public final class CurrencyDisplay {
     /** One coin type in a breakdown. */
     public record Coin(Item item, long count, long value) {}
 
-    private static Component digitalName = Component.literal("Coins");
-    private static Item digitalIcon = Items.PAPER;
-
     private CurrencyDisplay() {}
-
-    /** Set from ui.toml: the name and icon used for digital money. */
-    public static void setDigital(Component name, Item icon) {
-        digitalName = name;
-        digitalIcon = icon;
-    }
-
-    /** True when this currency can be shown (digital, or an item currency with counted coins). */
-    public static boolean isKnown(String currency) {
-        return DIGITAL.equals(currency) || !CurrencyDetector.denominations(currency).isEmpty();
-    }
 
     /**
      * Fewest coins for an amount, largest coin first. Any value too small for the smallest coin
@@ -73,14 +61,17 @@ public final class CurrencyDisplay {
         return Math.max(0, amount - used);
     }
 
-    /** Readable text, e.g. "2 Gold Coin, 40 Silver Coin" or "1,250 Coins". Item names are translated on the client. */
+    /** Readable text, e.g. "3 Block of Emerald, 5 Emerald" or "1,250 Coins". Item names are translated on the client. */
     public static Component format(String currency, long amount) {
         if (DIGITAL.equals(currency)) {
-            return Component.literal(String.format("%,d ", amount)).append(digitalName);
+            return Component.literal(String.format("%,d ", amount)).append(EconomyConfig.DIGITAL_PLURAL.get());
         }
         List<Coin> coins = breakdown(currency, amount);
         if (coins.isEmpty()) {
-            return Component.literal("0");
+            // Nothing to show in items: name the smallest currency item, e.g. "0 Emerald".
+            List<Map.Entry<Item, Long>> items = CurrencyDetector.denominations(currency);
+            if (items.isEmpty()) return Component.literal("0");
+            return Component.literal("0 ").append(items.getLast().getKey().getDescription());
         }
         MutableComponent out = Component.empty();
         for (int i = 0; i < coins.size(); i++) {
@@ -92,7 +83,7 @@ public final class CurrencyDisplay {
         }
         long rest = remainder(currency, amount);
         if (rest > 0) {
-            out.append(Component.literal(" (+" + rest + " too small for a coin)"));
+            out.append(Msg.text("display.leftover", "amount", rest));
         }
         return out;
     }
@@ -109,7 +100,7 @@ public final class CurrencyDisplay {
             return out;
         }
         if (DIGITAL.equals(currency)) {
-            ItemStack s = new ItemStack(digitalIcon);
+            ItemStack s = new ItemStack(DigitalCurrency.iconItem());
             s.set(DataComponents.CUSTOM_NAME, plain(format(currency, amount)).withStyle(ChatFormatting.YELLOW));
             out.add(s);
             return out;

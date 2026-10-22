@@ -11,7 +11,7 @@ Elements: Economy is a **currency bridge**. It detects and identifies the curren
 ## RULE — only mod currencies are currencies
 - A legitimate currency is one that **comes with a mod** (digital from Elements: Economy, or a detected currency mod's money/coins).
 - **Vanilla items are not currency by default** (emeralds, diamonds, gold, any `minecraft:` item). They don't affect any balance.
-- Exception: if the server owner **adds a vanilla item to currency_values.toml** (under `[minecraft]`), Economy detects it as the likely currency medium — but always verifies first. Every online admin gets an "Are you sure?" message with [Confirm] / [Ignore] buttons (`/economy currency confirm|ignore <item>`, `/economy currency pending`). Until confirmed, the item does not count. Answers are saved in the file under `[confirmed]`.
+- Exception: when no currency mod is found, admins are asked in chat to pick digital money or vanilla items (`/economy currency setup`). For vanilla items they pick the items and values, then confirm; confirming is the approval. The choice is kept in the data store and the picked items are written to currency_values.toml.
 - Shops and trades priced in unconfirmed vanilla items are **left alone**: no conversion, no payment interception, no switch-over.
 - The API (Elements: Vault), balances, the Nexus side panel and placeholders recognise **mod currencies only**, plus vanilla items an admin has confirmed.
 - Item-priced shops are **never converted to digital**. Switch-over only swaps one mod coin for another mod coin. Changing an item-priced shop to digital could break it.
