@@ -5,6 +5,8 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.tac5studios.elementseconomy.ElementsEconomy;
+import com.tac5studios.elementseconomy.auction.AhLinks;
+import com.tac5studios.elementseconomy.auction.Auctions;
 import com.tac5studios.elementseconomy.config.StorageConfig;
 import com.tac5studios.elementseconomy.core.Economy;
 import com.tac5studios.elementseconomy.currency.CurrencyDetector;
@@ -13,6 +15,8 @@ import com.tac5studios.elementseconomy.perms.Perm;
 import com.tac5studios.elementseconomy.shop.ShopDisplays;
 import com.tac5studios.elementseconomy.shop.Shop;
 import com.tac5studios.elementseconomy.shop.Shops;
+import com.tac5studios.elementseconomy.shop.StockVaults;
+import com.tac5studios.elementseconomy.servershop.ServerShops;
 import com.tac5studios.elementseconomy.storage.Backups;
 import com.tac5studios.elementseconomy.storage.Storage;
 import com.tac5studios.elementseconomy.storage.StorageConvert;
@@ -25,6 +29,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -32,11 +37,13 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * /economy reload                  messages.toml, currency_values.toml and the currency list (config .toml files
- *                                  reload on their own when saved; "(restart)" settings still need a restart)
+ * /economy reload                  every config file: messages.toml, currency_values.toml, the currency list and
+ *                                  primary currency, and a storage change in storage.toml (the other .toml files apply
+ *                                  as soon as they are saved), plus the stored data files read again.
+ *                                  Only the switches in features.toml need a restart.
  * /economy version                 mod version, primary currency, storage type
  * /economy storage convert <type>  copy all data to json / yaml / sqlite / mysql (backup first; the running
- *                                  storage is not changed — set the new type in storage.toml and restart)
+ *                                  storage is not changed — set the new type in storage.toml and run /economy reload)
  */
 @EventBusSubscriber(modid = ElementsEconomy.MOD_ID, value = Dist.DEDICATED_SERVER)
 public final class AdminCommands {
@@ -78,15 +85,38 @@ public final class AdminCommands {
     }
 
     private static int reload(CommandContext<CommandSourceStack> c) {
+        CommandSourceStack src = c.getSource();
+        MinecraftServer server = src.getServer();
         Msg.load();
+
+        Storage.Reload storage = Storage.reload();
+        String type = current();
+        switch (storage.result()) {
+            case SWITCHED -> Msg.sendLogged(src, "admin.storage_switched", "type", type);
+            case EMPTY -> Msg.fail(src, "admin.storage_empty", "type", type);
+            case FAILED -> Msg.fail(src, "admin.storage_failed", "type", type, "error", storage.error());
+            case BUSY -> Msg.fail(src, "admin.storage_busy");
+            case UNCHANGED -> { }
+        }
+        if (storage.result() != Storage.Switch.SWITCHED) {
+            int changed = Storage.reloadData(); // stored data edited while the server runs
+            if (changed > 0) Msg.sendLogged(src, "admin.data_reloaded", "count", changed);
+        }
+        // Everything kept in memory from the stored data loads again.
+        ServerStartedEvent started = new ServerStartedEvent(server);
+        Shops.onStarted(started);
+        ServerShops.onStarted(started);
+        Auctions.onStarted(started);
+        AhLinks.onStarted(started);
+        StockVaults.onStarted(started);
+
         CurrencyDetector.refresh();
         Economy e = Economy.get();
         if (e != null) e.reload();
         for (Shop s : Shops.all()) ShopDisplays.touch(s.id); // signs pick up new messages and prices
-        MinecraftServer server = c.getSource().getServer();
         CurrencyDetector.askAllAdmins(server); // only asks while no currency is picked
-        Msg.sendLogged(c.getSource(), "admin.reloaded");
-        ElementsEconomy.LOGGER.info("[Economy] Reloaded messages and currency values.");
+        Msg.sendLogged(src, "admin.reloaded");
+        ElementsEconomy.LOGGER.info("[Economy] Reloaded.");
         return 1;
     }
 

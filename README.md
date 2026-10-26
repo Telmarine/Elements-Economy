@@ -24,7 +24,7 @@ It runs on its own or next to Elements: Nexus. Neither one needs the other.
 ## Commands
 
 - `/bal [player]`, `/pay <player> <amount>`, `/pay toggle`, `/baltop`, `/payments`
-- `/exchange deposit [amount] [item]` and `/exchange withdraw <amount> [item]`: move currency items into your bank (digital money) and back, e.g. `/exchange deposit 2 minecraft:emerald_block`
+- `/exchange deposit [amount] [item]` and `/exchange withdraw <amount> [item]`: move currency items into your bank (digital money) and back, e.g. `/exchange deposit 2 Block_of_Emerald`
 - `/shop create buy` or `/shop create sell` (look at a chest or barrel), `/shop rename <name>`, `/shop remove`
 - `/shop`: server shops
 - `/ah`: auction house
@@ -69,7 +69,9 @@ Backups of `messages.toml` and `currency_values.toml` are saved next to them as 
 With an item currency (a currency mod with items, or vanilla items), players can also keep digital money in a bank:
 
 - `/exchange deposit [amount] [item]` puts the currency items you carry into your bank (no amount = all of them). `/exchange withdraw <amount> [item]` takes money out as currency items, paid in the fewest items possible.
-- The amount is counted in your smallest item unless you add an item ID: `/exchange deposit 2 minecraft:emerald_block` deposits 2 Blocks of Emerald's worth (18 Emerald), `/exchange withdraw 20 minecraft:emerald` withdraws 20 Emeralds' worth. Press Tab to see the IDs your server uses.
+- The amount is counted in your smallest item unless you add the item's name: `/exchange deposit 2 Block_of_Emerald` deposits 2 Blocks of Emerald's worth (18 Emerald), `/exchange withdraw 20 Emerald` withdraws 20 Emeralds' worth. Press Tab to see the names your server uses. The full item ID works too.
+- Players can also pay for items in shops, server shops and the auction house straight from their bank, together with the currency items they carry. Turn it off with `pay_from_bank` under `[currency]` in features.toml; pick which goes first with `pay_order` under `[bank]` in economy.toml.
+- The names come from each item's in-game name (Gold Coin shows as Gold). To set your own, add lines to `names` under `[exchange]` in economy.toml, e.g. `"minecraft:emerald_block=EmeraldBlock"`. Item IDs never show in the Tab list.
 - 1:1: one of your smallest currency items = one digital money.
 - When the item currency is the main currency, `/bal` shows the items you carry plus a "Bank:" line once your bank has money in it.
 - `bank_as_coins` in `features.toml` (on by default) shows bank amounts in your currency items, e.g. "3 Block of Emerald, 5 Emerald". Off = they always use the digital money name.

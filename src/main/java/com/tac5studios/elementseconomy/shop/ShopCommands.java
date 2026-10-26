@@ -176,7 +176,7 @@ public final class ShopCommands {
             BigInteger fee = Economy.configAmount(cur, ShopConfig.CREATE_FEE.get()).orElse(BigInteger.ZERO);
             if (fee.signum() > 0) {
                 Money m = cur.of(fee);
-                Result r = e.withdraw(p.getUUID(), m, Cause.command("/shop create", p.getUUID()).withReason("shop fee"));
+                Result r = e.pay(p.getUUID(), m, Cause.command("/shop create", p.getUUID()).withReason("shop fee"));
                 if (!r.success()) {
                     Msg.send(p, "shop.fee_not_enough", "amount", e.format(m));
                     return 0;

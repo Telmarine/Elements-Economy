@@ -165,19 +165,18 @@ public final class AhBrowseMenu extends PagedMenu<Listing> {
         set(row, 5, Button.display(Icons.filler()));
 
         // 7: amount up for auction (static)
-        Money balance = e.balance(viewer.getUUID(), cur.get());
+        Money balance = e.spendable(viewer.getUUID(), cur.get());
         ItemStack amt = Icons.named(Items.CHEST, Msg.menu("ah_menu.lot", "count", l.left));
         amt.setCount(Math.max(1, Math.min(64, l.left)));
         set(row, 6, Button.display(amt));
 
         if (!l.auction) {
             // 8: Buy (the whole listing)
-            Money total = shown;
             List<Component> t8 = new ArrayList<>();
             t8.add(Msg.menu("shop_menu.buy_line", "count", l.left, "item", l.item.getHoverName().getString()));
-            t8.add(Msg.menu("shop_menu.total", "amount", e.format(total)));
+            t8.add(Msg.menu("shop_menu.total", "amount", e.format(shown)));
             t8.add(Msg.menu("menu.balance_now", "balance", e.format(balance)));
-            t8.add(balance.compareTo(total) >= 0 ? Msg.menu("menu.balance_after", "balance", e.format(balance.subtract(total))) : Msg.menu("menu.not_enough"));
+            t8.add(balance.compareTo(shown) >= 0 ? Msg.menu("menu.balance_after", "balance", e.format(balance.subtract(shown))) : Msg.menu("menu.not_enough"));
             t8.add(Msg.menu("menu.click_confirm"));
             ItemStack buy = Icons.named(mine ? Items.GRAY_CONCRETE : Items.LIME_CONCRETE, Msg.menu("menu.buy"), tips ? t8 : List.of());
             set(row, 7, Button.of(buy, (p, c) -> {

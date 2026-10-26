@@ -14,7 +14,6 @@ import com.tac5studios.elementsvault.Currency;
 import com.tac5studios.elementsvault.Money;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -57,6 +56,7 @@ public final class TradeMenu extends PagedMenu<ShopRow> {
 
     static boolean near(Player player, Shop shop) {
         int d = ShopConfig.USE_DISTANCE.get();
+        //noinspection resource - the player's world is not ours to close
         return player.level().dimension().equals(shop.dimension)
                 && player.blockPosition().distSqr(shop.pos()) <= (double) d * d
                 && Shops.get(shop.id) != null;
@@ -131,7 +131,7 @@ public final class TradeMenu extends PagedMenu<ShopRow> {
         int items = bundles * r.per;
         Money each = cur.get().of(r.price);
         Money total = each.multiply(Math.max(bundles, 1));
-        Money balance = e.balance(viewer.getUUID(), cur.get());
+        Money balance = e.spendable(viewer.getUUID(), cur.get());
 
         // 1: stock / wanted
         List<Component> t1 = new ArrayList<>();
@@ -181,7 +181,7 @@ public final class TradeMenu extends PagedMenu<ShopRow> {
 
         // 7: amount
         ItemStack amount = Icons.named(Items.CHEST, Msg.menu("menu.amount", "count", Math.max(items, r.per)));
-        amount.setCount(Math.max(1, Math.min(64, Math.max(bundles, 1))));
+        amount.setCount(Math.min(64, Math.max(bundles, 1)));
         if (tips) {
             Icons.addLore(amount, List.of(
                     Msg.menu(buy() ? "shop_menu.cost" : "shop_menu.you_get", "amount", e.format(total)),

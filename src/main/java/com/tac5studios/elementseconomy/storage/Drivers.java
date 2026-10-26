@@ -11,6 +11,8 @@ import java.nio.file.Path;
 import java.sql.Driver;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -22,7 +24,7 @@ import java.util.stream.Stream;
  */
 final class Drivers {
 
-    /** Kept open for the life of the server so the driver's classes stay loaded. */
+    /** Kept open so the driver's classes stay loaded. Replaced when new jars are added. */
     private static URLClassLoader folderLoader;
 
     private Drivers() {}
@@ -53,16 +55,17 @@ final class Drivers {
             Files.createDirectories(dir);
         } catch (IOException ignored) {
         }
-        if (folderLoader == null) {
-            List<URL> jars = new ArrayList<>();
-            try (Stream<Path> files = Files.list(dir)) {
-                for (Path p : (Iterable<Path>) files::iterator) {
-                    if (p.getFileName().toString().toLowerCase().endsWith(".jar")) jars.add(p.toUri().toURL());
-                }
-            } catch (IOException ex) {
-                throw new SQLException("Could not read " + dir, ex);
+        List<URL> jars = new ArrayList<>();
+        try (Stream<Path> files = Files.list(dir)) {
+            for (Path p : (Iterable<Path>) files::iterator) {
+                if (p.getFileName().toString().toLowerCase().endsWith(".jar")) jars.add(p.toUri().toURL());
             }
-            if (jars.isEmpty()) throw missing(what, dir, download);
+        } catch (IOException ex) {
+            throw new SQLException("Could not read " + dir, ex);
+        }
+        if (jars.isEmpty()) throw missing(what, dir, download);
+        // A jar added while the server runs (picked up by /economy reload) gets a fresh loader that includes it.
+        if (folderLoader == null || !new HashSet<>(Arrays.asList(folderLoader.getURLs())).containsAll(jars)) {
             folderLoader = new URLClassLoader(jars.toArray(URL[]::new), Drivers.class.getClassLoader());
             ElementsEconomy.LOGGER.info("[Economy] Loaded {} driver jar(s) from {}.", jars.size(), dir);
         }
@@ -83,6 +86,6 @@ final class Drivers {
 
     private static SQLException missing(String what, Path dir, String download) {
         return new SQLException("No " + what + " driver found. Put the " + what + " driver jar (" + download
-                + ") in " + dir + " and restart");
+                + ") in " + dir + ", then start the server again or run /economy reload");
     }
 }

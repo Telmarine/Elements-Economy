@@ -25,7 +25,7 @@ Elements: Economy is a **currency bridge**. It detects and identifies the curren
 `config/elements_economy/features.toml` (source: config/Features.java).
 - One boolean per feature and per subcommand/function. Feature off = everything under it off. Feature on = each child decides.
 - A disabled command or permission node is not registered at all.
-- Switches that need a restart say "(restart)" in their comment.
+- Only the on/off switches in features.toml can need a restart; they say "(restart)" in their comment. Every other config change applies on save or with /economy reload.
 - Currency detection is the exception to per-item switches: **one switch (`currency.auto_detect`) covers every supported mod.**
 
 ## Side
@@ -104,7 +104,7 @@ Found shops are bridged (`overlap_guard.bridge_found_shops`, plus `shop_bridge.i
 - `/exchange deposit [amount] [coin]` · `/exchange withdraw <amount> [coin]`
 - /shop create buy · /shop create sell · /shop rename <name> · /shop remove
 - /shop (server shops) · /ah (auction house)
-- /economy reload (messages.toml, currency_values.toml, currency list; .toml settings reload on save, "(restart)" ones need a restart) | version (version, primary currency, storage) | migrate [source] [confirm [again]] | storage convert <json|yaml|sqlite|mysql> (backup first, copy only; set the type in storage.toml and restart; the final data is copied again when the server stops). Done (commands/AdminCommands, migrate/).
+- /economy reload (messages.toml, currency_values.toml, currency list, primary currency, and a storage change in storage.toml; the other .toml settings apply on save) | version (version, primary currency, storage) | migrate [source] [confirm [again]] | storage convert <json|yaml|sqlite|mysql> (backup first, copy only; set the type in storage.toml and run /economy reload, which copies the final data and moves only when the target holds Economy data). Done (commands/AdminCommands, migrate/).
 - Node pattern: `economy.<feature>.<action>`.
 
 ## Files so far

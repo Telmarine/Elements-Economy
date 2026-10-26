@@ -1,5 +1,18 @@
 # Elements: Economy changelog
 
+## 1.0.3
+
+### Config
+- Every config change now takes effect without a restart. Only the on/off switches in features.toml still need one.
+- `/economy reload` now also moves to a new storage when `backend`, `folder` or the mysql settings in storage.toml change. It only moves when the new storage already holds Economy data: copy it first with `/economy storage convert <type>`, set the type, then reload. If the new storage is empty or won't start, the current one stays in use.
+- `decimals` in economy.toml no longer needs a restart.
+- Every permission node is registered at startup, including those of features that are off, so turning a feature on while the server runs works without a restart or permission warnings.
+- `/economy reload` also reads the stored data files again (balances, shops, server shops, auction listings, links), so edits made to them while the server runs take effect. In-game changes that aren't saved yet are kept.
+
+### Currency
+- Pay with the bank: when the server uses currency items, players can pay for items (player shops, server shops, the auction house, shop fees) with their bank as well as the currency items they carry. Switch: `pay_from_bank` under `[currency]` in features.toml. Which goes first is `pay_order` under `[bank]` in economy.toml (`hands_first` or `bank_first`). Shop and auction menus show what the player can spend from both.
+- `/exchange` Tab list shows each currency item's in-game name (Gold Coin shows as Gold), never the item ID. Set your own names with `names` under `[exchange]` in economy.toml, one `"<item id>=<name>"` line per item. Names can be typed in any case; the full item ID still works.
+
 ## 1.0.2
 
 ### Changed

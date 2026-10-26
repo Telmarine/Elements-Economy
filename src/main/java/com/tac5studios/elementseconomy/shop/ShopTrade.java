@@ -81,7 +81,7 @@ public final class ShopTrade {
             return false;
         }
         Money cost = cur.get().of(r.price.multiply(BigInteger.valueOf(bundles)));
-        Money have = e.balance(p.getUUID(), cur.get());
+        Money have = e.spendable(p.getUUID(), cur.get());
         if (have.compareTo(cost) < 0) {
             Msg.send(p, "shop.not_enough", "amount", e.format(cost), "balance", e.format(have));
             return false;
@@ -91,7 +91,7 @@ public final class ShopTrade {
             return false;
         }
 
-        Result paid = e.withdraw(p.getUUID(), cost, Cause.shop(s.id, p.getUUID()));
+        Result paid = e.pay(p.getUUID(), cost, Cause.shop(s.id, p.getUUID()));
         if (!paid.success()) {
             Msg.send(p, "shop.not_enough", "amount", e.format(cost), "balance", e.format(have));
             return false;

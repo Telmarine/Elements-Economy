@@ -89,7 +89,7 @@ public final class ServerTradeMenu extends PagedMenu<ServerRow> {
         int items = bundles * r.per;
         Money each = cur.get().of(ServerShopTrade.price(r, viewer.getUUID()));
         Money total = each.multiply(Math.max(bundles, 1));
-        Money balance = e.balance(viewer.getUUID(), cur.get());
+        Money balance = e.spendable(viewer.getUUID(), cur.get());
         int left = ServerShopTrade.left(r);
 
         // 1: stock / wanted
@@ -101,7 +101,7 @@ public final class ServerTradeMenu extends PagedMenu<ServerRow> {
         } else {
             stock = Icons.named(buy() ? Items.PAPER : Items.HOPPER,
                     Msg.menu(buy() ? "menu.stock" : "menu.wanted", "count", left >= 64 && buy() ? "64+" : String.valueOf(left)));
-            stock.setCount(Math.max(1, Math.min(64, left)));
+            stock.setCount(Math.min(64, left));
         }
         set(row, 0, Button.display(stock));
 
@@ -135,7 +135,7 @@ public final class ServerTradeMenu extends PagedMenu<ServerRow> {
 
         // 7: amount
         ItemStack amount = Icons.named(Items.CHEST, Msg.menu("menu.amount", "count", Math.max(items, r.per)));
-        amount.setCount(Math.max(1, Math.min(64, Math.max(bundles, 1))));
+        amount.setCount(Math.min(64, Math.max(bundles, 1)));
         if (tips) {
             Icons.addLore(amount, List.of(Msg.menu(buy() ? "shop_menu.cost" : "shop_menu.you_get", "amount", e.format(total)),
                     Msg.menu("menu.click_change")));

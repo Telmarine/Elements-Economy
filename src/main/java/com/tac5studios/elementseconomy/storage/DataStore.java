@@ -170,7 +170,8 @@ public class DataStore {
         flush(true);
         saver.shutdown();
         try {
-            saver.awaitTermination(30, TimeUnit.SECONDS);
+            if (!saver.awaitTermination(30, TimeUnit.SECONDS))
+                ElementsEconomy.LOGGER.warn("[Economy] Saving took more than 30 seconds; closing anyway.");
         } catch (InterruptedException ignored) {
             Thread.currentThread().interrupt();
         }
@@ -178,6 +179,52 @@ public class DataStore {
     }
 
     // ---------- loading ----------
+
+    /**
+     * Reads every collection from the backend again, so edits made to the stored data while the server runs are
+     * picked up. In-game changes that are not saved yet win over the stored copy. Returns how many entries changed.
+     */
+    public int reload() {
+        try {
+            saver.submit(() -> { }).get(30, TimeUnit.SECONDS); // let saves already queued finish first
+        } catch (Exception ex) {
+            ElementsEconomy.LOGGER.warn("[Economy] A save was still running when the data was read again.", ex);
+        }
+        Set<String> names = new HashSet<>(cols.keySet());
+        try {
+            names.addAll(backend.collections());
+        } catch (Exception ex) {
+            ElementsEconomy.LOGGER.error("[Economy] Could not list the stored data. Only the loaded collections are read again.", ex);
+        }
+        int diff = 0;
+        for (String name : names) {
+            Map<String, JsonElement> next;
+            try {
+                next = new LinkedHashMap<>(backend.load(name));
+            } catch (Exception ex) {
+                ElementsEconomy.LOGGER.error("[Economy] Could not read '{}' again. The data in memory is kept.", name, ex);
+                continue;
+            }
+            Col c = col(name);
+            synchronized (c) {
+                for (String k : c.changed) {
+                    JsonElement v = c.data.get(k);
+                    if (v != null) next.put(k, v);
+                }
+                for (String k : c.removed) next.remove(k);
+                for (Map.Entry<String, JsonElement> e : next.entrySet()) {
+                    if (!e.getValue().equals(c.data.get(e.getKey()))) diff++;
+                }
+                for (String k : c.data.keySet()) {
+                    if (!next.containsKey(k)) diff++;
+                }
+                c.data.clear();
+                c.data.putAll(next);
+                c.failed = false;
+            }
+        }
+        return diff;
+    }
 
     /** Load every collection the backend already has. */
     public int loadAll() throws Exception {

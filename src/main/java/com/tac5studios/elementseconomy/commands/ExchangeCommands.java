@@ -6,6 +6,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.tac5studios.elementseconomy.ElementsEconomy;
+import com.tac5studios.elementseconomy.config.EconomyConfig;
 import com.tac5studios.elementseconomy.config.Features;
 import com.tac5studios.elementseconomy.core.Coins;
 import com.tac5studios.elementseconomy.core.DigitalCurrency;
@@ -21,7 +22,6 @@ import com.tac5studios.elementsvault.Result;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
@@ -58,13 +58,13 @@ public final class ExchangeCommands {
     private static final SuggestionProvider<CommandSourceStack> COINS = (c, b) -> {
         Economy e = Economy.get();
         ItemCurrency coin = e == null ? null : e.bankCoins();
-        List<ResourceLocation> ids = new ArrayList<>();
+        List<String> names = new ArrayList<>();
         if (coin != null) {
             for (Map.Entry<Item, Long> d : CurrencyDetector.denominations(coin.namespace())) {
-                if (d.getValue() > 0) ids.add(BuiltInRegistries.ITEM.getKey(d.getKey()));
+                if (d.getValue() > 0) names.add(exchangeName(d.getKey()));
             }
         }
-        return SharedSuggestionProvider.suggestResource(ids, b);
+        return SharedSuggestionProvider.suggest(names, b);
     };
 
     @SubscribeEvent
@@ -84,25 +84,25 @@ public final class ExchangeCommands {
                     .executes(c -> deposit(c, null, null))
                     .then(Commands.argument("amount", StringArgumentType.word())
                             .executes(c -> deposit(c, StringArgumentType.getString(c, "amount"), null))
-                            .then(Commands.argument("item", ResourceLocationArgument.id()).suggests(COINS)
+                            .then(Commands.argument("item", StringArgumentType.greedyString()).suggests(COINS)
                                     .executes(c -> deposit(c, StringArgumentType.getString(c, "amount"),
-                                            ResourceLocationArgument.getId(c, "item"))))));
+                                            StringArgumentType.getString(c, "item"))))));
         }
         if (withdraw) {
             ex.then(Commands.literal("withdraw")
                     .requires(s -> Perm.has(s, Perm.EXCHANGE_WITHDRAW))
                     .then(Commands.argument("amount", StringArgumentType.word())
                             .executes(c -> withdraw(c, StringArgumentType.getString(c, "amount"), null))
-                            .then(Commands.argument("item", ResourceLocationArgument.id()).suggests(COINS)
+                            .then(Commands.argument("item", StringArgumentType.greedyString()).suggests(COINS)
                                     .executes(c -> withdraw(c, StringArgumentType.getString(c, "amount"),
-                                            ResourceLocationArgument.getId(c, "item"))))));
+                                            StringArgumentType.getString(c, "item"))))));
         }
         d.register(ex);
     }
 
     // ---------- /exchange deposit ----------
 
-    private static int deposit(CommandContext<CommandSourceStack> c, String input, ResourceLocation coinName) {
+    private static int deposit(CommandContext<CommandSourceStack> c, String input, String coinName) {
         CommandSourceStack s = c.getSource();
         Setup x = setup(s);
         if (x == null) return 0;
@@ -149,7 +149,7 @@ public final class ExchangeCommands {
 
     // ---------- /exchange withdraw ----------
 
-    private static int withdraw(CommandContext<CommandSourceStack> c, String input, ResourceLocation coinName) {
+    private static int withdraw(CommandContext<CommandSourceStack> c, String input, String coinName) {
         CommandSourceStack s = c.getSource();
         Setup x = setup(s);
         if (x == null) return 0;
@@ -213,7 +213,7 @@ public final class ExchangeCommands {
      * Typed amount in the smallest coin, or "count" x the named coin's value. Null (and a message sent) when either part
      * is wrong.
      */
-    private static BigInteger coinAmount(CommandSourceStack s, Setup x, String input, ResourceLocation coinName) {
+    private static BigInteger coinAmount(CommandSourceStack s, Setup x, String input, String coinName) {
         if (coinName == null) {
             Money m = x.e.parse(x.coin, input).orElse(null);
             if (m == null || m.amount().signum() <= 0) {
@@ -241,30 +241,43 @@ public final class ExchangeCommands {
     }
 
     /**
-     * Value of the currency item called {@code name}, or null. The full item ID ("minecraft:emerald") always works.
-     * Without a mod id ("emerald_block") the name is matched against the item path and the item's display name.
+     * Value of the currency item called {@code typed}, or null. Matches the names set in economy.toml [exchange] names,
+     * the automatic name (the item's in-game name without "Coin"), the item path and the full item ID. Not case-sensitive.
      */
-    private static Long coinValue(ItemCurrency coin, ResourceLocation name) {
-        String typedPath = name.getPath().toLowerCase(Locale.ROOT);
-        boolean shortForm = name.getNamespace().equals("minecraft") || name.getNamespace().equals(coin.namespace());
+    private static Long coinValue(ItemCurrency coin, String typed) {
+        String t = typed.trim().toLowerCase(Locale.ROOT);
+        ResourceLocation asId = t.contains(":") ? ResourceLocation.tryParse(t) : null;
         for (Map.Entry<Item, Long> d : CurrencyDetector.denominations(coin.namespace())) {
             if (d.getValue() <= 0) continue;
             ResourceLocation id = BuiltInRegistries.ITEM.getKey(d.getKey());
-            if (id.equals(name)) return d.getValue();
-            if (!shortForm) continue;
-            String shortName = shortName(d.getKey());
-            if (typedPath.equals(id.getPath()) || typedPath.equals(shortName) || typedPath.equals(shortName + "_coin")) return d.getValue();
+            if (id.equals(asId)) return d.getValue();
+            String auto = autoName(d.getKey()).toLowerCase(Locale.ROOT);
+            if (t.equals(exchangeName(d.getKey()).toLowerCase(Locale.ROOT)) || t.equals(auto) || t.equals(auto + "_coin")
+                    || t.equals(id.getPath())) return d.getValue();
         }
         return null;
     }
 
-    /** "Bronze Coin" -> "bronze". Falls back to the item id path. */
-    private static String shortName(Item item) {
-        String s = item.getDescription().getString().replaceAll("§.", "").trim().toLowerCase(Locale.ROOT);
-        if (s.endsWith(" coins")) s = s.substring(0, s.length() - 6);
-        else if (s.endsWith(" coin")) s = s.substring(0, s.length() - 5);
+    /** Name shown in the Tab list and accepted when typed: economy.toml [exchange] names, else the automatic name. */
+    private static String exchangeName(Item item) {
+        String id = BuiltInRegistries.ITEM.getKey(item).toString();
+        for (String line : EconomyConfig.EXCHANGE_NAMES.get()) {
+            int eq = line.indexOf('=');
+            if (eq <= 0) continue;
+            String name = line.substring(eq + 1).trim().replace(' ', '_');
+            if (line.substring(0, eq).trim().equals(id) && !name.isEmpty()) return name;
+        }
+        return autoName(item);
+    }
+
+    /** "Bronze Coin" -> "Bronze". Falls back to the item id path. */
+    private static String autoName(Item item) {
+        String s = item.getDescription().getString().replaceAll("§.", "").trim();
+        String low = s.toLowerCase(Locale.ROOT);
+        if (low.endsWith(" coins")) s = s.substring(0, s.length() - 6);
+        else if (low.endsWith(" coin")) s = s.substring(0, s.length() - 5);
         s = s.trim().replace(' ', '_');
-        return s.isEmpty() || !s.matches("[a-z0-9_]+") ? BuiltInRegistries.ITEM.getKey(item).getPath() : s;
+        return s.isEmpty() || !s.matches("[A-Za-z0-9_]+") ? BuiltInRegistries.ITEM.getKey(item).getPath() : s;
     }
 
     private static String fmt(Currency c, BigInteger amount) {

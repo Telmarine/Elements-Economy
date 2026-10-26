@@ -712,17 +712,27 @@ leftover = " (+{amount} too small to pay out)"
 
 [admin]
 # /economy reload.
-reloaded = "{prefix}&aMessages and currency values reloaded. Settings marked (restart) still need a restart."
+reloaded = "{prefix}&aElements: Economy reloaded. Only the switches in features.toml need a restart."
 # /economy version.
 version = "{prefix}&7Elements: Economy &f{version} &8| &7Currency: &f{currency} &8| &7Storage: &f{storage}"
 # Storage convert started.
 convert_started = "{prefix}&7Copying data to {type}..."
 # Storage convert finished.
-convert_done = "{prefix}&aData copied to {type}. Set backend = \"{type}\" in storage.toml and restart. Changes made before the restart are copied again when the server stops."
+convert_done = "{prefix}&aData copied to {type}. Set backend = \"{type}\" in storage.toml, then run /economy reload."
 # Storage convert failed.
 convert_failed = "{prefix}&cCopy to {type} failed: {error}"
 # Already the active storage type.
 convert_same = "{prefix}&c{type} is already in use."
+# /economy reload found edits in the stored data files. {count} = changed entries.
+data_reloaded = "{prefix}&7Stored data read again: &f{count} &7changed entries."
+# /economy reload moved to the storage set in storage.toml.
+storage_switched = "{prefix}&aStorage switched to {type}."
+# The storage set in storage.toml has no Economy data yet, so nothing moved.
+storage_empty = "{prefix}&c{type} has no Economy data. Copy it first with /economy storage convert {type}, then reload. The current storage is still in use."
+# The storage set in storage.toml could not start.
+storage_failed = "{prefix}&c{type} could not start: {error}. The current storage is still in use."
+# A storage copy is still running.
+storage_busy = "{prefix}&cA storage copy is still running. Reload again when it's done."
 # A convert is already running.
 convert_running = "{prefix}&cA copy is already running."
 # Unknown storage type.

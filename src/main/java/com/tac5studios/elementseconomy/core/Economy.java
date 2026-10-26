@@ -361,6 +361,70 @@ public final class Economy implements EconomyService {
         return s != null && s.getPlayerList().getPlayer(player) != null;
     }
 
+    // ---------- paying with the bank ----------
+
+    /** Paying from the bank applies: the price is in currency items and the feature is on. */
+    private boolean bankPays(Currency c) {
+        return c instanceof ItemCurrency && Features.on(Features.CURRENCY_PAY_FROM_BANK);
+    }
+
+    /** Whole smallest currency items a digital amount covers (rounded down). */
+    private BigInteger bankAsItems(ItemCurrency coin, BigInteger digitalAmount) {
+        return new BigDecimal(digitalAmount).movePointLeft(digitalCurrency.decimals())
+                .divide(coinRate(coin), 0, RoundingMode.FLOOR).toBigInteger().max(BigInteger.ZERO);
+    }
+
+    /** Digital money that pays for an amount of smallest currency items (rounded up). */
+    private BigInteger itemsAsBank(ItemCurrency coin, BigInteger items) {
+        return new BigDecimal(items).multiply(coinRate(coin)).movePointRight(digitalCurrency.decimals())
+                .setScale(0, RoundingMode.CEILING).toBigInteger();
+    }
+
+    /**
+     * What a player can spend on items in this currency: the currency items they carry, plus their bank when
+     * paying from the bank is on. Same as {@link #balance} otherwise.
+     */
+    public Money spendable(UUID player, Currency currency) {
+        Money carried = balance(player, currency);
+        if (!bankPays(currency)) return carried;
+        ItemCurrency coin = (ItemCurrency) currency;
+        BigInteger bank = bankAsItems(coin, balance(player, digitalCurrency).amount());
+        return currency.of(carried.amount().add(bank));
+    }
+
+    /**
+     * Pays for items (shops, server shops, auction house, shop fees). With currency items and paying from the bank
+     * on, the carried items and the bank both count, in the order set by bank.pay_order in economy.toml. Otherwise
+     * the same as {@link #withdraw}. Either everything is paid or nothing is.
+     */
+    public Result pay(UUID player, Money price, Cause cause) {
+        if (!bankPays(price.currency())) return withdraw(player, price, cause);
+        ItemCurrency coin = (ItemCurrency) price.currency();
+        BigInteger cost = price.amount();
+        BigInteger carried = balance(player, coin).amount();
+        BigInteger bank = bankAsItems(coin, balance(player, digitalCurrency).amount());
+        if (carried.add(bank).compareTo(cost) < 0) {
+            return Result.fail(Result.Reason.INSUFFICIENT_FUNDS, price, Component.literal("Not enough money"));
+        }
+        BigInteger fromBank = "bank_first".equals(EconomyConfig.PAY_ORDER.get())
+                ? cost.min(bank)
+                : cost.subtract(carried).max(BigInteger.ZERO);
+        BigInteger fromItems = cost.subtract(fromBank);
+        if (fromBank.signum() == 0) return withdraw(player, price, cause);
+
+        Result items = null;
+        if (fromItems.signum() > 0) {
+            items = withdraw(player, coin.of(fromItems), cause);
+            if (!items.success()) return items;
+        }
+        Result banked = withdraw(player, digitalCurrency.of(itemsAsBank(coin, fromBank)), cause.withReason(cause.reason().isEmpty() ? "from bank" : cause.reason() + ", from bank"));
+        if (!banked.success()) {
+            if (items != null) deposit(player, coin.of(fromItems), Cause.system("refund: bank payment failed"));
+            return banked;
+        }
+        return Result.ok(price, coin.of(carried), coin.of(carried.subtract(fromItems)));
+    }
+
     // ---------- changes ----------
 
     @Override

@@ -23,7 +23,7 @@ public final class Features {
 
     // Currency
     public static final BooleanValue CURRENCY_DIGITAL, CURRENCY_AUTO_DETECT, CURRENCY_USE_DETECTED, CURRENCY_MULTIPLE,
-            CURRENCY_COUNT_HOLDERS, CURRENCY_EXCHANGE, CURRENCY_DEPOSIT, CURRENCY_WITHDRAW, CURRENCY_PAY_WITH_COINS,
+            CURRENCY_COUNT_HOLDERS, CURRENCY_EXCHANGE, CURRENCY_DEPOSIT, CURRENCY_WITHDRAW, CURRENCY_PAY_WITH_COINS, CURRENCY_PAY_FROM_BANK,
             CURRENCY_DETECT_LOG, CURRENCY_BANK_AS_COINS;
 
     // Currency switch-over
@@ -119,6 +119,7 @@ public final class Features {
         CURRENCY_WITHDRAW = sw(b, "withdraw", true, "Players can turn digital money into currency items. (restart)");
         CURRENCY_BANK_AS_COINS = sw(b, "bank_as_coins", true, "When the server has an item currency (a coin mod or confirmed vanilla items), show digital money (the bank) in those items, e.g. 3 Block of Emerald, 5 Emerald. Also used in the transaction log. Off = always show the digital money name from economy.toml.");
         CURRENCY_PAY_WITH_COINS = sw(b, "pay_with_coins", false, "Shops take and give currency items straight from the inventory.");
+        CURRENCY_PAY_FROM_BANK = sw(b, "pay_from_bank", true, "When the server uses currency items, players can pay for items (shops, server shops, the auction house, shop fees) with their bank as well as the currency items they carry. Order is set by bank.pay_order in economy.toml.");
         CURRENCY_DETECT_LOG = sw(b, "detect_log", true, "Log which currency mods were found.");
         b.pop();
 

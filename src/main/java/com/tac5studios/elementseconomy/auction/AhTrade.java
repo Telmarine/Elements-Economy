@@ -121,7 +121,7 @@ public final class AhTrade {
         p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         Auctions.add(l);
 
-        Msg.send(p, "ah.listed", "count", qty, "item", l.item.getHoverName().getString(), "amount", fmt(e, cur, auction ? price : price));
+        Msg.send(p, "ah.listed", "count", qty, "item", l.item.getHoverName().getString(), "amount", fmt(e, cur, price));
         TransactionLog.add("AH_LIST", l.sellerName + " listed " + qty + "x " + l.item.getHoverName().getString()
                 + (auction ? " (auction from " : " (") + fmt(e, cur, price) + (auction ? ")" : " each)") + " listing " + l.id);
         if (Features.on(Features.API, Features.API_EVENTS)) {
@@ -154,7 +154,7 @@ public final class AhTrade {
             return false;
         }
         BigInteger total = l.price.multiply(BigInteger.valueOf(count));
-        Money have = e.balance(p.getUUID(), cur.get());
+        Money have = e.spendable(p.getUUID(), cur.get());
         if (have.amount().compareTo(total) < 0) {
             Msg.send(p, "shop.not_enough", "amount", fmt(e, cur.get(), total), "balance", e.format(have));
             return false;
@@ -163,7 +163,7 @@ public final class AhTrade {
             Msg.send(p, "shop.no_room");
             return false;
         }
-        Result paid = e.withdraw(p.getUUID(), cur.get().of(total), Cause.auction(l.id, p.getUUID()));
+        Result paid = e.pay(p.getUUID(), cur.get().of(total), Cause.auction(l.id, p.getUUID()));
         if (!paid.success()) {
             Msg.send(p, "shop.not_enough", "amount", fmt(e, cur.get(), total), "balance", e.format(have));
             return false;
@@ -219,9 +219,9 @@ public final class AhTrade {
             Msg.send(p, "ah.bid_low", "amount", fmt(e, cur.get(), min));
             return false;
         }
-        Result paid = e.withdraw(p.getUUID(), cur.get().of(amount), Cause.auction(l.id, p.getUUID()).withReason("bid"));
+        Result paid = e.pay(p.getUUID(), cur.get().of(amount), Cause.auction(l.id, p.getUUID()).withReason("bid"));
         if (!paid.success()) {
-            Msg.send(p, "pay.not_enough", "balance", e.format(e.balance(p.getUUID(), cur.get())));
+            Msg.send(p, "pay.not_enough", "balance", e.format(e.spendable(p.getUUID(), cur.get())));
             return false;
         }
         Auctions.refundTopBid(l, !p.getUUID().equals(l.topBidder));
@@ -253,7 +253,7 @@ public final class AhTrade {
             Msg.send(p, "ah.cancel_has_bids");
             return false;
         }
-        close(l, Listing.Status.CANCELLED);
+        close(l);
         Msg.send(p, "ah.cancelled");
         return true;
     }
@@ -271,16 +271,16 @@ public final class AhTrade {
         Auctions.refundTopBid(l, false);
         l.topBidder = null;
         l.topBid = BigInteger.ZERO;
-        close(l, Listing.Status.CANCELLED);
+        close(l);
         Msg.send(staff, "ah.removed", "player", l.sellerName);
         TransactionLog.add("AH_REMOVE", staff.getGameProfile().getName() + " removed listing " + l.id + " by " + l.sellerName);
         return true;
     }
 
-    private static void close(Listing l, Listing.Status status) {
+    private static void close(Listing l) {
         if (l.left > 0 && l.item != null) CollectionBox.addItems(l.seller, l.item, l.left, Auctions.registries());
         l.left = 0;
-        l.status = status;
+        l.status = Listing.Status.CANCELLED;
         l.closed = System.currentTimeMillis();
         Auctions.save(l);
     }

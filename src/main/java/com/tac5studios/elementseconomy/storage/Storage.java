@@ -28,6 +28,8 @@ public final class Storage {
     private static final int QUICK_SAVE_TICKS = 40;
 
     private static DataStore store;
+    /** storage.toml settings the running store was opened with, to spot a change on reload. */
+    private static String runningSettings;
     private static int ticks;
     private static int quickSaveIn = -1;
 
@@ -46,7 +48,7 @@ public final class Storage {
     // ---------- server events ----------
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onAboutToStart(ServerAboutToStartEvent e) {
+    public static void onAboutToStart(ServerAboutToStartEvent ignored) {
         start();
     }
 
@@ -79,6 +81,7 @@ public final class Storage {
         }
 
         store = new DataStore(backend);
+        runningSettings = settings();
         int loaded;
         try {
             loaded = store.loadAll();
@@ -138,8 +141,80 @@ public final class Storage {
         StorageConvert.finish(store);
         store.close();
         store = null;
+        runningSettings = null;
         TransactionLog.stop();
         ElementsEconomy.LOGGER.info("[Economy] Storage saved and closed.");
+    }
+
+    /** What a storage.toml change did on /economy reload. */
+    public enum Switch { UNCHANGED, SWITCHED, EMPTY, FAILED, BUSY }
+
+    /** Result of {@link #reload()}: what happened, and the error text when it failed. */
+    public record Reload(Switch result, String error) {}
+
+    /**
+     * /economy reload: when backend, folder or the mysql settings in storage.toml changed, move to the new storage.
+     * The move only happens when the new storage already holds Economy data (copied with /economy storage convert),
+     * so the server never runs on an empty store. A copy made with convert this session gets the latest data first.
+     * On EMPTY or FAILED the running storage stays in use. Callers reload anything cached from storage after SWITCHED.
+     */
+    public static Reload reload() {
+        if (store == null) return new Reload(Switch.UNCHANGED, null);
+        String wanted = settings();
+        if (wanted.equals(runningSettings)) return new Reload(Switch.UNCHANGED, null);
+        if (StorageConvert.running()) return new Reload(Switch.BUSY, null);
+
+        String type = StorageConfig.BACKEND.get();
+        saveNow();
+        if (type.equals(StorageConvert.pending())) StorageConvert.finish(store); // newest data into the copy
+
+        StorageBackend backend;
+        DataStore next;
+        try {
+            backend = create(type, folder());
+            backend.open();
+        } catch (Exception | LinkageError ex) {
+            ElementsEconomy.LOGGER.error("[Economy] Storage '{}' could not start. Still using the current storage.", type, ex);
+            return new Reload(Switch.FAILED, ex.toString());
+        }
+        next = new DataStore(backend);
+        try {
+            next.loadAll();
+        } catch (Exception ex) {
+            ElementsEconomy.LOGGER.error("[Economy] Storage '{}' could not be read. Still using the current storage.", type, ex);
+            next.close();
+            return new Reload(Switch.FAILED, ex.toString());
+        }
+        if (next.get(Collections.META, "schema_version", Integer.class) == null) {
+            next.close(); // nothing was written to it, so closing leaves it as it was
+            return new Reload(Switch.EMPTY, null);
+        }
+
+        DataStore old = store;
+        store = next;
+        runningSettings = wanted;
+        ticks = 0;
+        quickSaveIn = -1;
+        store.put(Collections.META, "last_start", Instant.now().toString());
+        old.close();
+        ElementsEconomy.LOGGER.info("[Economy] Storage switched to {} at {}.", backend.name(), folder());
+        return new Reload(Switch.SWITCHED, null);
+    }
+
+    /** /economy reload: read the stored data again. Returns how many entries changed. */
+    public static int reloadData() {
+        return store == null ? 0 : store.reload();
+    }
+
+    /** The storage.toml settings that pick where data lives. */
+    private static String settings() {
+        String type = StorageConfig.BACKEND.get();
+        String s = type + "|" + folder();
+        if ("mysql".equals(type)) {
+            s += "|" + StorageConfig.MYSQL_HOST.get() + ":" + StorageConfig.MYSQL_PORT.get() + "/" + StorageConfig.MYSQL_DATABASE.get()
+                    + "|" + StorageConfig.MYSQL_USERNAME.get() + "|" + StorageConfig.MYSQL_PASSWORD.get().hashCode();
+        }
+        return s;
     }
 
     /** The storage folder from storage.toml. */

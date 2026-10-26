@@ -16,6 +16,7 @@ import java.util.function.Consumer;
 public final class StorageConvert {
 
     private static volatile boolean running;
+    private static volatile Thread worker;
     /** Backend that was copied to this session. Refreshed with the final data on shutdown. */
     private static volatile String pending;
 
@@ -23,6 +24,11 @@ public final class StorageConvert {
 
     public static boolean running() {
         return running;
+    }
+
+    /** Backend a finished copy went to this session, or null. */
+    static String pending() {
+        return pending;
     }
 
     /**
@@ -45,6 +51,7 @@ public final class StorageConvert {
             }
         }, "Economy-Convert");
         t.setDaemon(true);
+        worker = t;
         t.start();
     }
 
@@ -53,13 +60,12 @@ public final class StorageConvert {
         String target = pending;
         pending = null;
         if (target == null) return;
-        long until = System.currentTimeMillis() + 30_000;
-        while (running && System.currentTimeMillis() < until) {
+        Thread w = worker;
+        if (running && w != null) {
             try {
-                Thread.sleep(50); // a copy started just before shutdown; give it a moment to end
+                w.join(30_000); // a copy started just before shutdown; give it a moment to end
             } catch (InterruptedException ie) {
                 Thread.currentThread().interrupt();
-                break;
             }
         }
         if (running) {

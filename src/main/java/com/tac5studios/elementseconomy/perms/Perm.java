@@ -28,7 +28,8 @@ import java.util.function.BooleanSupplier;
  *  - or plain OP levels when nothing else is installed.
  * Economy never needs Nexus for this.
  * <p>
- * A node whose feature switch is off is not registered at all.
+ * Every node is registered at startup, so turning a feature on while the server runs needs no restart.
+ * A node whose feature switch is off always answers no.
  */
 @EventBusSubscriber(modid = ElementsEconomy.MOD_ID, value = Dist.DEDICATED_SERVER)
 public final class Perm {
@@ -160,16 +161,17 @@ public final class Perm {
         return n.getNodeName();
     }
 
-    /** Tell NeoForge about nodes whose features are on. Runs at server start, after configs load. */
+    /**
+     * Tell NeoForge about every node at server start. Nodes of features that are off are registered too, so a
+     * feature turned on later works right away; {@link #has} and {@link #limit} still answer no while it's off.
+     */
     @SubscribeEvent
     public static void onGatherNodes(PermissionGatherEvent.Nodes event) {
-        List<PermissionNode<?>> on = new ArrayList<>();
-        for (Entry e : NODES.values()) if (e.gate().getAsBoolean()) on.add(e.node());
-        LIMITS.forEach((name, n) -> {
-            if (LIMIT_GATES.get(name).getAsBoolean()) on.add(n);
-        });
-        event.addNodes(on.toArray(new PermissionNode<?>[0]));
-        ElementsEconomy.LOGGER.info("[Economy] {} permission nodes registered.", on.size());
+        List<PermissionNode<?>> all = new ArrayList<>();
+        for (Entry e : NODES.values()) all.add(e.node());
+        all.addAll(LIMITS.values());
+        event.addNodes(all.toArray(new PermissionNode<?>[0]));
+        ElementsEconomy.LOGGER.info("[Economy] {} permission nodes registered.", all.size());
     }
 
     // ---------- checking ----------

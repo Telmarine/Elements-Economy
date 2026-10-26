@@ -42,7 +42,8 @@ public final class StorageConfig {
                 "  sqlite: sqlite-jdbc (org.xerial), e.g. sqlite-jdbc-3.45.1.0.jar",
                 "  mysql:  mariadb-java-client (org.mariadb.jdbc), e.g. mariadb-java-client-3.5.1.jar (works with MySQL too)",
                 "If the one you pick fails to start, the server stops with an error instead of running on empty data.",
-                "This change needs a server restart."
+                "To change it: copy your data with /economy storage convert <type>, set the type here, then run",
+                "/economy reload. Economy only moves to a storage that already holds its data."
         ).defineInList("backend", "json", Arrays.asList("json", "yaml", "sqlite", "mysql"));
 
         FOLDER = b.comment("Folder for json/yaml files and the sqlite file. Starts from the server folder.")

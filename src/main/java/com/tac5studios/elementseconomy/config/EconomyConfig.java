@@ -28,6 +28,9 @@ public final class EconomyConfig {
 
     public static final ModConfigSpec.ConfigValue<String> SDM_CURRENCY;
 
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> EXCHANGE_NAMES;
+    public static final ModConfigSpec.ConfigValue<String> PAY_ORDER;
+
     public static final ModConfigSpec.IntValue BACKUPS_KEPT;
 
     static {
@@ -44,7 +47,7 @@ public final class EconomyConfig {
         DIGITAL_NAME = b.comment("Name for one.").define("name", "Coin");
         DIGITAL_PLURAL = b.comment("Name for more than one.").define("plural", "Coins");
         DIGITAL_SYMBOL = b.comment("Symbol shown before amounts. Leave empty for none.").define("symbol", "");
-        DIGITAL_DECIMALS = b.comment("Decimal places, e.g. 2 for 12.50. Change this only before anyone has money. (restart)")
+        DIGITAL_DECIMALS = b.comment("Decimal places, e.g. 2 for 12.50. Change this only before anyone has money.")
                 .defineInRange("decimals", 0, 0, 4);
         DIGITAL_ICON = b.comment("Item that shows digital money in menus.").define("icon", "minecraft:paper");
         STARTING_BALANCE = b.comment("Money new players start with. Needs economy.starting_balance on.")
@@ -67,6 +70,22 @@ public final class EconomyConfig {
 
         b.comment("Settings for currency mods that keep money in their own data.").push("currency_mods");
         SDM_CURRENCY = b.comment("SDM Economy currency to use.").define("sdm_currency", "basic_money");
+        b.pop();
+
+        b.comment("/exchange").push("exchange");
+        EXCHANGE_NAMES = b.comment(
+                "Names players see in the Tab list for the [item] part of /exchange, and can type instead of the item ID.",
+                "One line per currency item: \"<item id>=<name>\". Items without a line use their in-game name",
+                "without \"Coin\" (Gold Coin -> Gold). Names can't have spaces. Not case-sensitive when typed."
+        ).defineListAllowEmpty("names", List.of(), () -> "modid:item=Name", o -> o instanceof String s && s.contains("="));
+        b.pop();
+
+        b.comment("Paying for items with the bank (features.toml currency.pay_from_bank).").push("bank");
+        PAY_ORDER = b.comment(
+                "Which money goes first when a player buys something and the server uses currency items.",
+                "hands_first = the currency items they carry first, the bank covers the rest",
+                "bank_first  = the bank first, the currency items they carry cover the rest"
+        ).defineInList("pay_order", "hands_first", java.util.Arrays.asList("hands_first", "bank_first"));
         b.pop();
 
         b.comment("Config files Economy rewrites itself (messages.toml, currency_values.toml).").push("files");

@@ -11,7 +11,8 @@ no_currency = ["{prefix}&cThere are no coins to exchange on this server."]
 unknown_coin = ["{prefix}&c'{coin}' is not a coin here."]
 
 [admin]
-convert_done = ["{prefix}&aData copied to {type}. Set backend = \"{type}\" in storage.toml and restart."]
+reloaded = ["{prefix}&aMessages and currency values reloaded. Settings marked (restart) still need a restart."]
+convert_done = ["{prefix}&aData copied to {type}. Set backend = \"{type}\" in storage.toml and restart.", "{prefix}&aData copied to {type}. Set backend = \"{type}\" in storage.toml and restart. Changes made before the restart are copied again when the server stops."]
 
 [migrate]
 preview_rate = ["&7 Rate: &f{key} = {rate}"]

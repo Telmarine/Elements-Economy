@@ -5,7 +5,7 @@ Same storage system as Elements: Nexus, with its own config, folder and table. T
 ## storage.toml (config/elements_economy/storage.toml)
 | Setting | Default | What it does |
 |---|---|---|
-| backend | json | json, yaml, sqlite or mysql. If it can't start, the server stops with an error instead of running on empty data. (restart) |
+| backend | json | json, yaml, sqlite or mysql. If it can't start, the server stops with an error instead of running on empty data. Applies with /economy reload. |
 | folder | elements_economy/store | Where json/yaml files and economy.db live. |
 | save_interval_seconds | 60 | Seconds between saves of changed data. |
 | quick_save_money | true | Money changes save within 2 seconds instead of waiting for the timer. |
@@ -20,7 +20,8 @@ Same storage system as Elements: Nexus, with its own config, folder and table. T
 - Each collection is a map of key → JSON value. json/yaml: one file per collection. sqlite/mysql: one table `economy_data (collection, data_key, data_value)`.
 - Files save through a temp file and a move, so a crash never leaves half a file.
 - A broken file is copied to `<name>.json.broken-<time>` and that collection starts empty. A collection that fails to load is never saved that run, so stored data isn't overwritten.
-- `/economy storage convert <type>` copies everything to another backend while the server runs. Change `backend` and restart to use it. Anything that changes before the restart is copied again when the server stops.
+- `/economy reload` reads the stored data again, so edits made to the files or database while the server runs take effect. In-game changes that aren't saved yet win over the stored copy.
+- `/economy storage convert <type>` copies everything to another backend while the server runs. Change `backend` and run `/economy reload` to use it; the latest data is copied again right before the move. Economy only moves to a storage that already holds its data, so a reload with an empty target changes nothing.
 - snakeyaml is bundled with jarJar (same range as Nexus, so only one copy loads when both mods are installed). The SQLite and MySQL drivers are not bundled: put `sqlite-jdbc` (org.xerial) or `mariadb-java-client` (org.mariadb.jdbc) in `<server>/elements_economy/drivers`. A driver another mod already provides is used first. Without one, the server stops with an error naming the missing jar.
 
 ## Money safety

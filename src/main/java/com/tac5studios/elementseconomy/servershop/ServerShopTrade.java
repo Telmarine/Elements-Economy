@@ -82,7 +82,7 @@ public final class ServerShopTrade {
         Cause cause = Cause.shop("server:" + s.id, p.getUUID());
 
         if (s.type == ShopType.BUY) {
-            Money have = e.balance(p.getUUID(), cur.get());
+            Money have = e.spendable(p.getUUID(), cur.get());
             if (have.compareTo(total) < 0) {
                 Msg.send(p, "shop.not_enough", "amount", e.format(total), "balance", e.format(have));
                 return false;
@@ -91,7 +91,7 @@ public final class ServerShopTrade {
                 Msg.send(p, "shop.no_room");
                 return false;
             }
-            Result paid = e.withdraw(p.getUUID(), total, cause);
+            Result paid = e.pay(p.getUUID(), total, cause);
             if (!paid.success()) {
                 Msg.send(p, "shop.not_enough", "amount", e.format(total), "balance", e.format(have));
                 return false;
